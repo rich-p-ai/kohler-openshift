@@ -1,0 +1,18 @@
+spec:
+  storageDeviceSets:
+    - name: osd
+      placement:
+        tolerations:
+          - key: "odf-infra"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+    - name: mon
+      placement:
+        tolerations:
+          - key: "odf-infra"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+# You may need to add tolerations under all StorageDeviceSets (OSD, MON, RGW, etc.) 
+# depending on your topology. Refer to your StorageCluster spec for exact names.

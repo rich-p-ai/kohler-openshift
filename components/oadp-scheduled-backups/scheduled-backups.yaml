@@ -1,0 +1,154 @@
+---
+# Scheduled daily backup for critical namespaces
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-critical-backup
+  namespace: openshift-adp
+  annotations:
+    argocd.argoproj.io/sync-wave: "25"
+  labels:
+    schedule-type: daily
+    backup-level: critical
+spec:
+  # Run daily at 2 AM
+  schedule: "0 2 * * *"
+  
+  # Backup template
+  template:
+    metadata:
+      labels:
+        backup-type: scheduled-daily
+        backup-level: critical
+    spec:
+      # Critical namespaces
+      includedNamespaces:
+      - default
+      - openshift-config
+      - openshift-monitoring
+      - openshift-logging
+      - openshift-gitops
+      - cert-manager
+      
+      # Exclude volatile data
+      excludedResources:
+      - events
+      - events.events.k8s.io
+      
+      # Storage location
+      storageLocation: ocp-prd-backup-location
+      
+      # Volume snapshots
+      volumeSnapshotLocations:
+      - ocp-prd-snapshot-location
+      
+      # Include cluster resources for these critical namespaces
+      includeClusterResources: true
+      
+      # Keep backups for 30 days
+      ttl: 720h0m0s
+      
+      # Label selector for critical resources
+      labelSelector:
+        matchExpressions:
+        - key: backup-exclude
+          operator: DoesNotExist
+
+---
+# Scheduled weekly full cluster backup
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: weekly-full-backup
+  namespace: openshift-adp
+  annotations:
+    argocd.argoproj.io/sync-wave: "25"
+  labels:
+    schedule-type: weekly
+    backup-level: full
+spec:
+  # Run weekly on Sunday at 1 AM
+  schedule: "0 1 * * 0"
+  
+  # Backup template
+  template:
+    metadata:
+      labels:
+        backup-type: scheduled-weekly
+        backup-level: full
+    spec:
+      # Include all namespaces except system ones
+      excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - openshift-machine-api
+      - openshift-machine-config-operator
+      - openshift-cloud-credential-operator
+      
+      # Exclude volatile resources
+      excludedResources:
+      - events
+      - events.events.k8s.io
+      - pods
+      - replicasets
+      
+      # Storage location
+      storageLocation: ocp-prd-backup-location
+      
+      # Volume snapshots
+      volumeSnapshotLocations:
+      - ocp-prd-snapshot-location
+      
+      # Include cluster resources
+      includeClusterResources: true
+      
+      # Keep backups for 90 days
+      ttl: 2160h0m0s
+
+---
+# Scheduled monthly archive backup
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: monthly-archive-backup
+  namespace: openshift-adp
+  annotations:
+    argocd.argoproj.io/sync-wave: "25"
+  labels:
+    schedule-type: monthly
+    backup-level: archive
+spec:
+  # Run monthly on the 1st at midnight
+  schedule: "0 0 1 * *"
+  
+  # Backup template
+  template:
+    metadata:
+      labels:
+        backup-type: scheduled-monthly
+        backup-level: archive
+    spec:
+      # Include everything except explicitly excluded
+      excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      
+      # Only exclude truly volatile resources
+      excludedResources:
+      - events
+      - events.events.k8s.io
+      
+      # Storage location
+      storageLocation: ocp-prd-backup-location
+      
+      # Volume snapshots
+      volumeSnapshotLocations:
+      - ocp-prd-snapshot-location
+      
+      # Include cluster resources
+      includeClusterResources: true
+      
+      # Keep archive backups for 1 year
+      ttl: 8760h0m0s

@@ -1,0 +1,46 @@
+---
+apiVersion: oadp.openshift.io/v1alpha1
+kind: DataProtectionApplication
+metadata:
+  name: ocp-prd-velero-config
+  namespace: openshift-adp
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  configuration:
+    velero:
+      defaultPlugins:
+      - openshift
+      - aws
+      - csi
+      featureFlags:
+      - EnableCSI
+    restic:
+      enable: true
+      supplementalGroups:
+      - 0
+    nodeAgent:
+      enable: true
+      uploaderType: restic
+  backupLocations:
+  - velero:
+      config:
+        region: minio
+        s3ForcePathStyle: "true"
+        s3Url: https://s3-openshift-storage.apps.ocp-prd.kohlerco.com
+        insecureSkipTLSVerify: "false"
+      credential:
+        key: cloud
+        name: cloud-credentials
+      default: true
+      objectStorage:
+        bucket: velero-backup-b8287a8a-e806-4217-afc7-848ce1accf5f
+        prefix: ocp-prd
+      provider: aws
+    name: ocp-prd-backup-location
+  snapshotLocations:
+  - velero:
+      config:
+        region: minio
+      provider: aws
+    name: ocp-prd-snapshot-location
