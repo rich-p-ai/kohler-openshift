@@ -4,3 +4,4 @@ kind: Kustomization
 
 resources:
   - ./scheduled-backups.yaml
+  - ./app-namespace-daily-backup.yaml

@@ -1,0 +1,145 @@
+---
+# Daily backup schedule for application namespaces
+# This creates daily backups of your app namespaces on ocp-prd
+# Backups are stored on ocp-host S3 storage
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-app-namespace-backup
+  namespace: openshift-adp
+  annotations:
+    argocd.argoproj.io/sync-wave: "25"
+  labels:
+    schedule-type: daily
+    backup-level: application
+    managed-by: oadp-gitops
+spec:
+  # Run daily at 3:00 AM (to avoid conflicts with other scheduled backups)
+  schedule: "0 3 * * *"
+  
+  # Backup template configuration
+  template:
+    metadata:
+      labels:
+        backup-type: scheduled-daily
+        backup-level: application
+        schedule-name: daily-app-namespace-backup
+    spec:
+      # Application namespaces to backup
+      # Replace these with your actual app namespace names
+      includedNamespaces:
+      - balance-fit-prd          # Example app namespace
+      - data-analytics           # Example app namespace
+      - humanresourceapps        # Example app namespace
+      # Add your app namespaces here:
+      # - your-app-namespace-1
+      # - your-app-namespace-2
+      
+      # Exclude system and infrastructure namespaces
+      excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - openshift-*
+      - default
+      
+      # Include all resources by default but exclude volatile ones
+      excludedResources:
+      - events
+      - events.events.k8s.io
+      - pods                     # Pods will be recreated by controllers
+      - replicasets             # ReplicaSets will be recreated by Deployments
+      
+      # Include specific resource types critical for app recovery
+      includedResources: []     # Empty means include all (except excluded)
+      
+      # Storage configuration - uses existing ocp-host S3 setup
+      storageLocation: ocp-prd-backup-location
+      
+      # Volume snapshots for persistent data
+      volumeSnapshotLocations:
+      - ocp-prd-snapshot-location
+      
+      # Don't include cluster-scoped resources (focus on app namespaces)
+      includeClusterResources: false
+      
+      # Backup retention - keep for 30 days
+      ttl: 720h0m0s
+      
+      # Default volume snapshot option
+      defaultVolumesToRestic: false
+      
+      # Hooks for application-consistent backups (optional)
+      # Uncomment and modify if you have databases or stateful apps
+      # hooks:
+      #   resources:
+      #   - name: database-backup-hook
+      #     includedNamespaces:
+      #     - your-database-namespace
+      #     includedResources:
+      #     - pods
+      #     labelSelector:
+      #       matchLabels:
+      #         app: database
+      #     pre:
+      #     - exec:
+      #         command:
+      #         - /bin/bash
+      #         - -c
+      #         - "echo 'Starting database backup'"
+      #         container: database
+      #         timeout: 5m
+      #     post:
+      #     - exec:
+      #         command:
+      #         - /bin/bash
+      #         - -c
+      #         - "echo 'Database backup completed'"
+      #         container: database
+      #         timeout: 1m
+
+---
+# Backup policy for ensuring app namespace backups are properly managed
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-backup-policy
+  namespace: openshift-adp
+  labels:
+    backup-type: application
+    managed-by: oadp-gitops
+data:
+  backup-policy.yaml: |
+    # Application Namespace Backup Policy
+    # This policy ensures proper backup of application namespaces
+    
+    retention:
+      daily: 30 days
+      schedule: "0 3 * * *"
+      
+    included_namespaces:
+      - balance-fit-prd
+      - data-analytics
+      - humanresourceapps
+      # Add your app namespaces here
+      
+    backup_features:
+      - persistent_volumes: true
+      - volume_snapshots: true
+      - secrets: true
+      - configmaps: true
+      - deployments: true
+      - services: true
+      - routes: true
+      - service_accounts: true
+      - role_bindings: true
+      
+    excluded_resources:
+      - events
+      - pods
+      - replicasets
+      
+    storage:
+      location: "s3-openshift-storage.apps.ocp-prd.kohlerco.com"
+      bucket: "velero-backup-b8287a8a-e806-4217-afc7-848ce1accf5f"
+      prefix: "ocp-prd/app-namespaces"
