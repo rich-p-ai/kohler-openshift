@@ -1,0 +1,25 @@
+---
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  identityProviders:
+  - mappingMethod: claim
+    name: azureadsso
+    openID:
+      claims:
+        email:
+        - email
+        name:
+        - name
+        preferredUsername:
+        - upn
+      clientID: 667e7b9c-e03e-4967-a9fd-953fef9cbce6
+      clientSecret:
+        name: openid-client-secret-azuread
+      extraScopes: []
+      issuer: https://login.microsoftonline.com/5d2d3f03-286e-4643-8f5b-10565608e5f8
+    type: OpenID
