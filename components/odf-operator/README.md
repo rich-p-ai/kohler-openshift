@@ -26,18 +26,17 @@ Configures the ODF storage cluster:
 ## Storage Configuration
 
 ### StorageCluster Specifications
-- **Storage Class**: `gp3-csi` (AWS GP3 volumes)
+- **Storage Class**: `thin-csi` (VMware vSphere CSI)
 - **Storage Size**: 2Ti per OSD device
 - **Replica Count**: 3 (for high availability)
 - **Device Sets**: 1 device set with 3 replicas
+- **Resource Profile**: lean (optimized for resource-constrained environments)
 
 ### Resource Allocation
-- **MDS (Metadata Server)**: 1-3 CPU, 8Gi memory
-- **MGR (Manager)**: 500m-1 CPU, 3Gi memory  
-- **MON (Monitor)**: 500m-1 CPU, 2Gi memory
-- **OSD (Object Storage Daemon)**: 1-2 CPU, 5Gi memory
-- **NooBaa Core**: 500m-1 CPU, 4Gi memory
-- **NooBaa DB**: 500m-1 CPU, 4Gi memory
+- **MDS (Metadata Server)**: 8Gi memory (limits and requests)
+- **Resource Profile**: lean profile for optimized resource usage
+- **Encryption**: Weekly key rotation enabled
+- **Disaster Recovery**: Configured as disaster recovery target
 
 ## Features Enabled
 

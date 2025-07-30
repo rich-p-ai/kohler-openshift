@@ -6,89 +6,91 @@ metadata:
   namespace: openshift-storage
   annotations:
     argocd.argoproj.io/sync-wave: "15"
+    ocs.openshift.io/clusterIsDisasterRecoveryTarget: "true"
+    uninstall.ocs.openshift.io/cleanup-policy: delete
+    uninstall.ocs.openshift.io/mode: graceful
 spec:
   arbiter: {}
   encryption:
+    keyRotation:
+      schedule: '@weekly'
     kms: {}
   externalStorage: {}
-  flexibleScaling: true
+  manageNodes: true
+  managedResources:
+    cephBlockPools:
+      defaultStorageClass: true
+    cephCluster: {}
+    cephConfig: {}
+    cephDashboard: {}
+    cephFilesystems:
+      dataPoolSpec:
+        application: ""
+        erasureCoded:
+          codingChunks: 0
+          dataChunks: 0
+        mirroring: {}
+        quotas: {}
+        replicated:
+          size: 0
+        statusCheck:
+          mirror: {}
+    cephNonResilientPools:
+      count: 1
+      resources: {}
+      volumeClaimTemplate:
+        metadata: {}
+        spec:
+          resources: {}
+        status: {}
+    cephObjectStoreUsers: {}
+    cephObjectStores: {}
+    cephRBDMirror:
+      daemonCount: 1
+    cephToolbox: {}
+  mirroring: {}
+  network:
+    connections:
+      encryption: {}
+    multiClusterService: {}
+  nodeTopologies: {}
+  resourceProfile: lean
   resources:
     mds:
       limits:
-        cpu: "3"
-        memory: "8Gi"
+        memory: 8Gi
       requests:
-        cpu: "1"
-        memory: "8Gi"
-    mgr:
-      limits:
-        cpu: "1"
-        memory: "3Gi"
-      requests:
-        cpu: 500m
-        memory: "3Gi"
-    mon:
-      limits:
-        cpu: "1"
-        memory: "2Gi"
-      requests:
-        cpu: 500m
-        memory: "2Gi"
-    noobaa-core:
-      limits:
-        cpu: "1"
-        memory: "4Gi"
-      requests:
-        cpu: 500m
-        memory: "4Gi"
-    noobaa-db:
-      limits:
-        cpu: "1"
-        memory: "4Gi"
-      requests:
-        cpu: 500m
-        memory: "4Gi"
-    osd:
-      limits:
-        cpu: "2"
-        memory: "5Gi"
-      requests:
-        cpu: "1"
-        memory: "5Gi"
-    prepareosd:
-      limits:
-        cpu: 500m
-        memory: "50Mi"
-      requests:
-        cpu: 500m
-        memory: "50Mi"
-    crashcollector:
-      limits:
-        cpu: 500m
-        memory: "60Mi"
-      requests:
-        cpu: 100m
-        memory: "60Mi"
+        memory: 8Gi
   storageDeviceSets:
   - config: {}
     count: 1
     dataPVCTemplate:
+      metadata: {}
       spec:
         accessModes:
         - ReadWriteOnce
         resources:
           requests:
             storage: 2Ti
-        storageClassName: gp3-csi
+        storageClassName: thin-csi
         volumeMode: Block
-    name: ocs-deviceset-gp3-csi
-    placement: {}
+      status: {}
+    name: ocs-deviceset-thin-csi
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+            - key: node-role.kubernetes.io/infra
+              operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
     portable: true
+    preparePlacement: {}
     replica: 3
-    resources:
-      limits:
-        cpu: "2"
-        memory: "5Gi"
-      requests:
-        cpu: "1"
-        memory: "5Gi"
+    resources: {}
