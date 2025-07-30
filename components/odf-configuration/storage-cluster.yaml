@@ -1,0 +1,94 @@
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  arbiter: {}
+  encryption:
+    kms: {}
+  externalStorage: {}
+  flexibleScaling: true
+  resources:
+    mds:
+      limits:
+        cpu: "3"
+        memory: "8Gi"
+      requests:
+        cpu: "1"
+        memory: "8Gi"
+    mgr:
+      limits:
+        cpu: "1"
+        memory: "3Gi"
+      requests:
+        cpu: 500m
+        memory: "3Gi"
+    mon:
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+      requests:
+        cpu: 500m
+        memory: "2Gi"
+    noobaa-core:
+      limits:
+        cpu: "1"
+        memory: "4Gi"
+      requests:
+        cpu: 500m
+        memory: "4Gi"
+    noobaa-db:
+      limits:
+        cpu: "1"
+        memory: "4Gi"
+      requests:
+        cpu: 500m
+        memory: "4Gi"
+    osd:
+      limits:
+        cpu: "2"
+        memory: "5Gi"
+      requests:
+        cpu: "1"
+        memory: "5Gi"
+    prepareosd:
+      limits:
+        cpu: 500m
+        memory: "50Mi"
+      requests:
+        cpu: 500m
+        memory: "50Mi"
+    crashcollector:
+      limits:
+        cpu: 500m
+        memory: "60Mi"
+      requests:
+        cpu: 100m
+        memory: "60Mi"
+  storageDeviceSets:
+  - config: {}
+    count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Ti
+        storageClassName: gp3-csi
+        volumeMode: Block
+    name: ocs-deviceset-gp3-csi
+    placement: {}
+    portable: true
+    replica: 3
+    resources:
+      limits:
+        cpu: "2"
+        memory: "5Gi"
+      requests:
+        cpu: "1"
+        memory: "5Gi"
