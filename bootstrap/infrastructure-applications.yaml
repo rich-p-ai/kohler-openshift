@@ -1,0 +1,128 @@
+---
+# Phase 3: Infrastructure and Security Applications
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: image-registry-configuration
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+  labels:
+    component: infrastructure
+    phase: core
+spec:
+  project: cluster-config
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/image-registry-configuration
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-image-registry
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    retry:
+      limit: -1
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rbac-configuration
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+  labels:
+    component: security
+    phase: platform
+spec:
+  project: cluster-config
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/rbac-configuration
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+    retry:
+      limit: -1
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: security-policies
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+  labels:
+    component: security
+    phase: platform
+spec:
+  project: cluster-config
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/security-policies
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+    retry:
+      limit: -1
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: oauth-configuration
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  labels:
+    component: authentication
+    phase: security
+spec:
+  project: cluster-config
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/oauth-configuration
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-config
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+    retry:
+      limit: -1
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

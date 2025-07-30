@@ -1,0 +1,64 @@
+---
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  name: cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+spec:
+  # Management State
+  managementState: Managed
+  
+  # High Availability
+  replicas: 2
+  
+  # Storage Configuration for vSphere
+  storage:
+    pvc:
+      claim: "image-registry-storage"
+      size: 100Gi
+      storageClassName: "thin-csi"
+  
+  # Route Configuration
+  defaultRoute: true
+  routes:
+  - name: default-route
+    hostname: default-route-openshift-image-registry.apps.ocp-dev.kohlerco.com
+    secretName: registry-tls
+  
+  # Resource Configuration
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  
+  # Node Placement
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+  
+  # Tolerations for infra nodes
+  tolerations:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/infra
+    operator: Exists
+  
+  # Registry Configuration
+  httpSecret: registry-http-secret
+  
+  # Logging Configuration
+  logLevel: Normal
+  operatorLogLevel: Normal
+  
+  # Request limits
+  requests:
+    read:
+      maxRunning: 10
+      maxInQueue: 10
+      maxWaitInQueue: 60s
+    write:
+      maxRunning: 10
+      maxInQueue: 10
+      maxWaitInQueue: 60s

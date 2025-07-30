@@ -1,0 +1,24 @@
+---
+apiVersion: config.openshift.io/v1
+kind: Network
+metadata:
+  name: cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  # Cluster Network Configuration
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  
+  # Service Network Configuration  
+  serviceNetwork:
+  - 172.30.0.0/16
+  
+  # Default Network Type
+  networkType: OVNKubernetes
+  
+  # External Traffic Policy
+  externalIP:
+    policy: {}
+    autoAssignCIDRs: []

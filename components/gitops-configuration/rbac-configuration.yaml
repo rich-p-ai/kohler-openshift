@@ -1,0 +1,57 @@
+---
+# ClusterRole for GitOps to manage cluster-wide resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: openshift-gitops-cluster-admin
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- nonResourceURLs:
+  - "*"
+  verbs:
+  - "*"
+---
+# ClusterRoleBinding for GitOps service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openshift-gitops-cluster-admin
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: openshift-gitops-cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: openshift-gitops-argocd-application-controller
+  namespace: openshift-gitops
+- kind: ServiceAccount
+  name: openshift-gitops-applicationset-controller
+  namespace: openshift-gitops
+- kind: ServiceAccount
+  name: openshift-gitops-argocd-server
+  namespace: openshift-gitops
+---
+# Additional RoleBinding for openshift-gitops-operator namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openshift-gitops-operator-admin
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: openshift-gitops-operator-controller-manager
+  namespace: openshift-gitops-operator

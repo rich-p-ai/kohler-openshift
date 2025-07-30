@@ -1,0 +1,62 @@
+---
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: default
+  namespace: openshift-ingress-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  # Default domain configuration
+  domain: apps.ocp-dev.kohlerco.com
+  
+  # High Availability
+  replicas: 2
+  
+  # Node placement for ingress controllers
+  nodePlacement:
+    nodeSelector:
+      matchLabels:
+        node-role.kubernetes.io/worker: ""
+    tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/infra
+      operator: Exists
+  
+  # Default certificate configuration
+  defaultCertificate:
+    name: router-certs-default
+  
+  # Endpoint publishing strategy
+  endpointPublishingStrategy:
+    type: LoadBalancerService
+    loadBalancer:
+      scope: External
+  
+  # HTTP/2 Configuration
+  httpHeaders:
+    actions:
+      response:
+      - name: X-Frame-Options
+        action:
+          type: Set
+          set:
+            value: DENY
+      - name: X-Content-Type-Options
+        action:
+          type: Set
+          set:
+            value: nosniff
+  
+  # Tuning Parameters
+  tuningOptions:
+    headerBufferBytes: 32768
+    headerBufferMaxRewriteBytes: 8192
+    threadCount: 4
+  
+  # Logging
+  logging:
+    access:
+      destination:
+        type: Container
+      httpLogFormat: '%ci:%cp [%t] %ft %b/%s %Tw/%Tc/%Tr/%Ta %{+Q}r %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}ST'

@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: image-registry-storage
+  namespace: openshift-image-registry
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: thin-csi
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: registry-http-secret
+  namespace: openshift-image-registry
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+type: Opaque
+data:
+  # Auto-generated secret for registry HTTP configuration
+  # This will be auto-populated by the registry operator
+  secret: ""
