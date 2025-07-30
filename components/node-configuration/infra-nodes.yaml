@@ -1,0 +1,102 @@
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: infra
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  machineConfigSelector:
+    matchExpressions:
+    - key: machineconfiguration.openshift.io/role
+      operator: In
+      values:
+      - worker
+      - infra
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/infra: ""
+  paused: false
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: placeholder-infra-node-1
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+    # This is a placeholder - actual nodes will be labeled manually
+    cluster.x-k8s.io/machine: "infra-node-1"
+  labels:
+    node-role.kubernetes.io/infra: ""
+    node-role.kubernetes.io/worker: ""
+    # Rack topology for ODF
+    topology.kubernetes.io/rack: "rack0"
+    # Storage node designation
+    cluster.ocs.openshift.io/openshift-storage: ""
+spec:
+  # Node spec will be managed by the cluster
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/infra
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: infra-node-setup-instructions
+  namespace: openshift-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+data:
+  README.md: |
+    # Infrastructure Node Configuration
+    
+    This component manages the configuration for infrastructure nodes.
+    
+    ## Manual Steps Required
+    
+    1. Label existing nodes for infrastructure workloads:
+    ```bash
+    # Label nodes for infrastructure role
+    oc label node NODE_NAME node-role.kubernetes.io/infra=""
+    
+    # Add rack topology labels for ODF (if using ODF)
+    oc label node NODE_NAME topology.kubernetes.io/rack="rack0"  # or rack1, rack2
+    
+    # Add storage node labels for ODF
+    oc label node NODE_NAME cluster.ocs.openshift.io/openshift-storage=""
+    ```
+    
+    2. Apply taints to prevent regular workloads:
+    ```bash
+    oc adm taint node NODE_NAME node-role.kubernetes.io/infra=:NoSchedule
+    ```
+    
+    3. For OCP-DEV cluster, identify which nodes should be infrastructure nodes:
+    ```bash
+    # List all nodes
+    oc get nodes
+    
+    # Check current node roles
+    oc get nodes --show-labels | grep node-role
+    ```
+    
+    ## Infrastructure Workloads
+    
+    The following workloads should be scheduled on infrastructure nodes:
+    - Image Registry
+    - Ingress Controllers
+    - Monitoring Components
+    - GitOps Components
+    - ODF Storage Components (if dedicated storage nodes)
+    
+    ## Node Selectors
+    
+    Components will use these node selectors:
+    ```yaml
+    nodeSelector:
+      node-role.kubernetes.io/infra: ""
+    tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/infra
+      operator: Exists
+    ```

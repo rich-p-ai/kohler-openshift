@@ -1,0 +1,63 @@
+---
+apiVersion: config.openshift.io/v1
+kind: Infrastructure
+metadata:
+  name: cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  platformSpec:
+    type: VSphere
+    vsphere:
+      vcenters:
+      - server: uswivc02.kohlerco.com
+        port: 443
+        datacenters:
+        - VxRail-Datacenter
+        failureDomains:
+        - name: vxrail-fd-1
+          region: uswivc
+          zone: vxrail-zone-1
+          server: uswivc02.kohlerco.com
+          topology:
+            datacenter: VxRail-Datacenter
+            computeCluster: /VxRail-Datacenter/host/VxRail-Cluster
+            networks:
+            - VLAN225
+            datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore
+            resourcePool: /VxRail-Datacenter/host/VxRail-Cluster/Resources
+            folder: /VxRail-Datacenter/vm/ocp-dev
+        - name: vxrail-fd-2
+          region: uswivc
+          zone: vxrail-zone-2
+          server: uswivc02.kohlerco.com
+          topology:
+            datacenter: VxRail-Datacenter
+            computeCluster: /VxRail-Datacenter/host/VxRail-Cluster
+            networks:
+            - VLAN225
+            datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore
+            resourcePool: /VxRail-Datacenter/host/VxRail-Cluster/Resources
+            folder: /VxRail-Datacenter/vm/ocp-dev
+        - name: vxrail-fd-3
+          region: uswivc
+          zone: vxrail-zone-3
+          server: uswivc02.kohlerco.com
+          topology:
+            datacenter: VxRail-Datacenter
+            computeCluster: /VxRail-Datacenter/host/VxRail-Cluster
+            networks:
+            - VLAN225
+            datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore
+            resourcePool: /VxRail-Datacenter/host/VxRail-Cluster/Resources
+            folder: /VxRail-Datacenter/vm/ocp-dev
+status:
+  infrastructureName: ocp-dev
+  platform: VSphere
+  platformStatus:
+    type: VSphere
+    vsphere:
+      apiServerInternalIP: 10.188.225.10
+      ingressIP: 10.188.225.11
+      machineNetworks:
+      - 10.188.225.0/24

@@ -1,0 +1,69 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: thin-csi
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+    storageclass.kubernetes.io/is-default-class: "true"
+allowVolumeExpansion: true
+parameters:
+  storagepolicyname: VxRail vSAN Default Storage Policy
+provisioner: csi.vsphere.vmware.com
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: thin-csi-no-expansion
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+allowVolumeExpansion: false
+parameters:
+  storagepolicyname: VxRail vSAN Default Storage Policy
+provisioner: csi.vsphere.vmware.com
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: vxrail-ssd-policy
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+allowVolumeExpansion: true
+parameters:
+  storagepolicyname: VxRail SSD Storage Policy
+  fstype: ext4
+provisioner: csi.vsphere.vmware.com
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+---
+# VSphere CSI Driver ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vsphere-csi-config
+  namespace: openshift-cluster-csi-drivers
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+data:
+  config.yaml: |
+    global:
+      cluster-id: "ocp-dev"
+      cluster-distribution: "openshift"
+      csi-auth-check: true
+      csi-windows-support: false
+    vcenter:
+      uswivc02.kohlerco.com:
+        server: "uswivc02.kohlerco.com"
+        port: 443
+        insecure-flag: false
+        datacenter: "VxRail-Datacenter"
+        secretName: "vsphere-csi-config-secret"
+        secretNamespace: "openshift-cluster-csi-drivers"
+        user: "ocp-dev-csi@vsphere.local"
+        password: ""
+        datacenters:
+        - "VxRail-Datacenter"

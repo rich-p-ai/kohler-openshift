@@ -1,0 +1,95 @@
+---
+# Network Policy for GitOps namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gitops-network-policy
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: openshift-ingress
+    - namespaceSelector:
+        matchLabels:
+          name: openshift-monitoring
+    - namespaceSelector:
+        matchLabels:
+          name: openshift-gitops-operator
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 8443
+  egress:
+  - {} # Allow all egress for GitOps operations
+---
+# Network Policy for ODF namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: odf-network-policy
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 3300
+    - protocol: TCP
+      port: 6789
+    - protocol: TCP
+      port: 6800-7300
+  egress:
+  - {} # Allow all egress for storage operations
+---
+# Network Policy for OADP namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oadp-network-policy
+  namespace: openshift-adp
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: openshift-monitoring
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - {} # Allow all egress for backup operations
+---
+# Default deny-all policy template (commented out for dev)
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: default-deny-all
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "9"
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Ingress
+#   - Egress

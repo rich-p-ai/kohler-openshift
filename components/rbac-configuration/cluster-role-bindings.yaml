@@ -1,0 +1,89 @@
+---
+# GitOps Service Account Bindings
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gitops-admin-binding
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gitops-admin
+subjects:
+- kind: ServiceAccount
+  name: openshift-gitops-argocd-application-controller
+  namespace: openshift-gitops
+- kind: ServiceAccount
+  name: openshift-gitops-applicationset-controller
+  namespace: openshift-gitops
+---
+# Infrastructure Admin Group Binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: infrastructure-admin-group
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: infrastructure-admin
+subjects:
+- kind: Group
+  name: infrastructure-admins
+  apiGroup: rbac.authorization.k8s.io
+---
+# Application Developer Groups
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: app-developer-groups
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: app-developer
+subjects:
+- kind: Group
+  name: data-analytics-developers
+  apiGroup: rbac.authorization.k8s.io
+- kind: Group
+  name: humanresource-developers
+  apiGroup: rbac.authorization.k8s.io
+- kind: Group
+  name: procurement-developers
+  apiGroup: rbac.authorization.k8s.io
+---
+# OpenShift Built-in Admin Groups
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-admin-groups
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: Group
+  name: cluster-admins
+  apiGroup: rbac.authorization.k8s.io
+---
+# Monitoring and Observability
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: monitoring-viewers
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-viewer
+subjects:
+- kind: Group
+  name: monitoring-users
+  apiGroup: rbac.authorization.k8s.io

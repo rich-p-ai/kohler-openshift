@@ -1,0 +1,85 @@
+---
+# Pod Security Configuration for GitOps
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+---
+# Pod Security Configuration for ODF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+---
+# Pod Security Configuration for OADP
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-adp
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: baseline
+    pod-security.kubernetes.io/warn: baseline
+---
+# Pod Security Configuration for Image Registry
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-image-registry
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+---
+# Security Context Constraint for GitOps
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: gitops-scc
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+- ALL
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users:
+- system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller
+- system:serviceaccount:openshift-gitops:openshift-gitops-argocd-server
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- projected
+- secret

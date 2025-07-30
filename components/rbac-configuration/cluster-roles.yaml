@@ -1,0 +1,114 @@
+---
+# GitOps Administrator Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-admin
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- nonResourceURLs:
+  - "*"
+  verbs:
+  - "*"
+---
+# Infrastructure Admin Role  
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: infrastructure-admin
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+rules:
+- apiGroups:
+  - ""
+  - "apps"
+  - "config.openshift.io"
+  - "operator.openshift.io"
+  - "operators.coreos.com"
+  - "machineconfiguration.openshift.io"
+  - "imageregistry.operator.openshift.io"
+  - "route.openshift.io"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- apiGroups:
+  - "storage.k8s.io"
+  - "ocs.openshift.io"
+  - "odf.openshift.io"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- apiGroups:
+  - "velero.io"
+  - "oadp.openshift.io"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+---
+# Application Developer Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: app-developer
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+rules:
+- apiGroups:
+  - ""
+  - "apps"
+  - "extensions"
+  - "route.openshift.io"
+  - "build.openshift.io"
+  - "image.openshift.io"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+  resourceNames: []
+- apiGroups:
+  - ""
+  resources:
+  - "persistentvolumeclaims"
+  - "secrets"
+  - "configmaps"
+  - "serviceaccounts"
+  verbs:
+  - "*"
+- apiGroups:
+  - "networking.k8s.io"
+  resources:
+  - "networkpolicies"
+  - "ingresses"
+  verbs:
+  - "*"
+---
+# View-Only Role for Monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-viewer
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - "get"
+  - "list"
+  - "watch"
+- nonResourceURLs:
+  - "*"
+  verbs:
+  - "get"
