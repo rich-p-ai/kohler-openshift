@@ -1,0 +1,22 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: vault-ui
+  namespace: vault-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+  labels:
+    app.kubernetes.io/name: vault
+spec:
+  host: vault.${CLUSTER_BASE_DOMAIN}
+  to:
+    kind: Service
+    name: vault-ui
+    weight: 100
+  port:
+    targetPort: vault-ui
+  tls:
+    termination: passthrough
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

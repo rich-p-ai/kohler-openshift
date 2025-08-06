@@ -1,0 +1,131 @@
+---
+# Application for HashiCorp Vault Community Edition
+# This deploys Vault with automated initialization and configuration
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-community
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kohler-openshift/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/vault-community
+    kustomize:
+      patches:
+        - target:
+            kind: Route
+            name: vault-ui
+          patch: |-
+            - op: replace
+              path: /spec/host
+              value: vault-${ARGOCD_ENV_CLUSTER_NAME}.apps.${ARGOCD_ENV_CLUSTER_DOMAIN}
+        - target:
+            kind: ConfigMap
+            name: vault-config
+          patch: |-
+            - op: replace
+              path: /data/vault.hcl
+              value: |
+                ui = true
+                api_addr = "https://vault-${ARGOCD_ENV_CLUSTER_NAME}.apps.${ARGOCD_ENV_CLUSTER_DOMAIN}"
+                cluster_addr = "https://vault.vault-system.svc.cluster.local:8201"
+                
+                storage "file" {
+                  path = "/vault/data"
+                }
+                
+                listener "tcp" {
+                  address = "0.0.0.0:8200"
+                  tls_cert_file = "/vault/tls/tls.crt"
+                  tls_key_file = "/vault/tls/tls.key"
+                  tls_disable_client_certs = true
+                }
+                
+                seal "transit" {
+                  address = "https://vault-${ARGOCD_ENV_CLUSTER_NAME}.apps.${ARGOCD_ENV_CLUSTER_DOMAIN}"
+                  disable_renewal = "false"
+                  key_name = "autounseal"
+                  mount_path = "transit/"
+                  tls_skip_verify = "true"
+                }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+---
+# Application for External Secrets Operator integration
+# This configures External Secrets to work with our Vault deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-secrets-vault
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kohler-openshift/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/external-secrets
+    kustomize:
+      patches:
+        - target:
+            kind: ClusterSecretStore
+            name: vault-secret-store
+          patch: |-
+            - op: replace
+              path: /spec/provider/vault/server
+              value: https://vault.vault-system.svc.cluster.local:8200
+        - target:
+            kind: SecretStore
+          patch: |-
+            - op: replace
+              path: /spec/provider/vault/server
+              value: https://vault.vault-system.svc.cluster.local:8200
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+  ignoreDifferences:
+    - group: external-secrets.io
+      kind: ClusterSecretStore
+      jsonPointers:
+        - /status
+    - group: external-secrets.io
+      kind: SecretStore
+      jsonPointers:
+        - /status

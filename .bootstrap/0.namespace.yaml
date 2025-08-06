@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-gitops-operator
+  labels:
+    name: openshift-gitops-operator
+    openshift.io/cluster-monitoring: "true"
+  annotations:
+    openshift.io/description: "Namespace for OpenShift GitOps Operator"
+    openshift.io/display-name: "OpenShift GitOps Operator"

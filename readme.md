@@ -105,6 +105,50 @@ In order to work with this repo effectively, you'll need the following tools ins
 - [oc](https://docs.openshift.com/container-platform/4.14/cli_reference/openshift_cli/getting-started-cli.html#installing-openshift-cli)
 - [helm](https://helm.sh/docs/intro/install/)
 - [kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/binaries/)
+- [gh](https://cli.github.com/) (for GitHub secrets management)
+- [kubeseal](https://sealed-secrets.netlify.app/) (for sealed secrets)
+
+### Secrets Management
+
+This repository implements secure secret management using multiple approaches:
+
+1. **GitHub Secrets**: Store sensitive values as GitHub repository secrets
+2. **Sealed Secrets**: Encrypt secrets that can be safely stored in Git
+3. **HashiCorp Vault**: Enterprise-grade secret management with External Secrets Operator
+4. **External Secrets Operator**: Automatic synchronization between Vault and OpenShift
+
+#### Quick Start
+
+1. **Run the setup script**:
+   ```bash
+   # Linux/macOS
+   ./scripts/setup-github-secrets.sh
+   
+   # Windows PowerShell
+   .\scripts\setup-github-secrets.ps1
+   ```
+
+2. **Or follow manual setup**:
+   - See [GitHub Secrets Setup Guide](docs/GITHUB-SECRETS-SETUP.md)
+   - Review [Secrets Management Guide](docs/SECRETS-MANAGEMENT.md)
+
+#### Required Secrets
+
+| Secret | Environment | Description |
+|--------|------------|-------------|
+| `AZURE_AD_CLIENT_SECRET` | All | OAuth integration with Azure AD |
+| `OADP_AWS_ACCESS_KEY_ID` | All | AWS credentials for backup storage |
+| `OADP_AWS_SECRET_ACCESS_KEY` | All | AWS credentials for backup storage |
+| `OPENSHIFT_SERVER` | All | Cluster API server URL |
+| `OPENSHIFT_TOKEN` | All | Service account token |
+
+#### Security Features
+
+- 🔍 **Automatic secret scanning** - Prevents plaintext secrets in Git
+- 🔐 **Multi-layer encryption** - GitHub Secrets + Sealed Secrets + Vault
+- 🚀 **Automated deployment** - GitHub Actions workflows
+- 🔄 **Secret rotation** - Automated with External Secrets Operator
+- 📊 **Security monitoring** - Trivy vulnerability scanning
 
 ### Debugging
 

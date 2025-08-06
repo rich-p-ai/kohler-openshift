@@ -1,0 +1,273 @@
+name: Vault Integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - staging
+        - prod
+      vault_operation:
+        description: 'Vault operation'
+        required: true
+        default: 'sync'
+        type: choice
+        options:
+        - sync
+        - backup
+        - restore
+
+env:
+  VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+  VAULT_NAMESPACE: ${{ secrets.VAULT_NAMESPACE }}
+
+jobs:
+  vault-operations:
+    name: Vault Operations
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Vault CLI
+        run: |
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install vault
+
+      - name: Authenticate with Vault
+        env:
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
+          VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
+        run: |
+          if [ -n "$VAULT_TOKEN" ]; then
+            echo "Using Vault token authentication"
+            vault auth -method=token token="$VAULT_TOKEN"
+          elif [ -n "$VAULT_ROLE_ID" ] && [ -n "$VAULT_SECRET_ID" ]; then
+            echo "Using AppRole authentication"
+            vault write auth/approle/login role_id="$VAULT_ROLE_ID" secret_id="$VAULT_SECRET_ID"
+            VAULT_TOKEN=$(vault write -field=token auth/approle/login role_id="$VAULT_ROLE_ID" secret_id="$VAULT_SECRET_ID")
+            echo "VAULT_TOKEN=$VAULT_TOKEN" >> $GITHUB_ENV
+          else
+            echo "❌ No valid Vault authentication method configured"
+            exit 1
+          fi
+
+      - name: Sync Secrets to Vault
+        if: github.event.inputs.vault_operation == 'sync'
+        env:
+          AZURE_AD_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+          OADP_AWS_ACCESS_KEY_ID: ${{ secrets.OADP_AWS_ACCESS_KEY_ID }}
+          OADP_AWS_SECRET_ACCESS_KEY: ${{ secrets.OADP_AWS_SECRET_ACCESS_KEY }}
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          BASE_PATH="secret/openshift/${ENV}"
+          
+          echo "Syncing secrets to Vault for environment: $ENV"
+          
+          # Store Azure AD client secret
+          if [ -n "$AZURE_AD_CLIENT_SECRET" ]; then
+            vault kv put "${BASE_PATH}/oauth" \
+              azure_ad_client_secret="$AZURE_AD_CLIENT_SECRET"
+            echo "✅ Azure AD client secret synced to Vault"
+          fi
+          
+          # Store OADP backup credentials
+          if [ -n "$OADP_AWS_ACCESS_KEY_ID" ] && [ -n "$OADP_AWS_SECRET_ACCESS_KEY" ]; then
+            vault kv put "${BASE_PATH}/oadp" \
+              aws_access_key_id="$OADP_AWS_ACCESS_KEY_ID" \
+              aws_secret_access_key="$OADP_AWS_SECRET_ACCESS_KEY"
+            echo "✅ OADP backup credentials synced to Vault"
+          fi
+          
+          # Store registry credentials
+          if [ -n "$REGISTRY_USERNAME" ] && [ -n "$REGISTRY_PASSWORD" ]; then
+            vault kv put "${BASE_PATH}/registry" \
+              username="$REGISTRY_USERNAME" \
+              password="$REGISTRY_PASSWORD"
+            echo "✅ Registry credentials synced to Vault"
+          fi
+
+      - name: Backup Vault Secrets
+        if: github.event.inputs.vault_operation == 'backup'
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          BASE_PATH="secret/openshift/${ENV}"
+          BACKUP_DIR="vault-backup-$(date +%Y%m%d-%H%M%S)"
+          
+          mkdir -p "$BACKUP_DIR"
+          
+          echo "Creating backup of Vault secrets for environment: $ENV"
+          
+          # Backup OAuth secrets
+          if vault kv get -format=json "${BASE_PATH}/oauth" > /dev/null 2>&1; then
+            vault kv get -format=json "${BASE_PATH}/oauth" > "${BACKUP_DIR}/oauth-secrets.json"
+            echo "✅ OAuth secrets backed up"
+          fi
+          
+          # Backup OADP secrets
+          if vault kv get -format=json "${BASE_PATH}/oadp" > /dev/null 2>&1; then
+            vault kv get -format=json "${BASE_PATH}/oadp" > "${BACKUP_DIR}/oadp-secrets.json"
+            echo "✅ OADP secrets backed up"
+          fi
+          
+          # Backup registry secrets
+          if vault kv get -format=json "${BASE_PATH}/registry" > /dev/null 2>&1; then
+            vault kv get -format=json "${BASE_PATH}/registry" > "${BACKUP_DIR}/registry-secrets.json"
+            echo "✅ Registry secrets backed up"
+          fi
+          
+          # Create encrypted archive
+          tar -czf "${BACKUP_DIR}.tar.gz" "$BACKUP_DIR"
+          echo "📦 Backup archive created: ${BACKUP_DIR}.tar.gz"
+
+      - name: Upload backup artifact
+        if: github.event.inputs.vault_operation == 'backup'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vault-backup-${{ github.event.inputs.environment }}-${{ github.run_number }}
+          path: vault-backup-*.tar.gz
+          retention-days: 30
+
+  external-secrets-operator:
+    name: Deploy External Secrets Operator
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    if: github.event.inputs.vault_operation == 'sync'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up OpenShift CLI
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: 4
+
+      - name: Login to OpenShift
+        env:
+          OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
+          OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
+        run: |
+          oc login --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_SERVER" --insecure-skip-tls-verify=true
+
+      - name: Install External Secrets Operator
+        run: |
+          if ! oc get namespace external-secrets-system 2>/dev/null; then
+            echo "Installing External Secrets Operator..."
+            
+            # Create namespace
+            oc create namespace external-secrets-system
+            
+            # Install operator
+            cat << EOF | oc apply -f -
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: external-secrets-operator
+            namespace: external-secrets-system
+          spec:
+            channel: stable
+            name: external-secrets-operator
+            source: community-operators
+            sourceNamespace: openshift-marketplace
+          EOF
+            
+            # Wait for operator to be ready
+            oc wait --for=condition=available --timeout=300s deployment/external-secrets -n external-secrets-system
+            echo "✅ External Secrets Operator installed"
+          else
+            echo "External Secrets Operator already installed"
+          fi
+
+      - name: Configure Vault SecretStore
+        env:
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          
+          # Create Vault authentication secret
+          oc create secret generic vault-token \
+            --namespace=external-secrets-system \
+            --from-literal=token="$VAULT_TOKEN" \
+            --dry-run=client -o yaml | oc apply -f -
+          
+          # Create SecretStore for Vault
+          cat << EOF | oc apply -f -
+          apiVersion: external-secrets.io/v1beta1
+          kind: SecretStore
+          metadata:
+            name: vault-secret-store
+            namespace: openshift-config
+          spec:
+            provider:
+              vault:
+                server: "${{ secrets.VAULT_ADDR }}"
+                path: "secret"
+                version: "v2"
+                auth:
+                  tokenSecretRef:
+                    name: vault-token
+                    key: token
+                    namespace: external-secrets-system
+          EOF
+          
+          echo "✅ Vault SecretStore configured"
+
+      - name: Create ExternalSecrets
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          
+          # Azure AD Client Secret
+          cat << EOF | oc apply -f -
+          apiVersion: external-secrets.io/v1beta1
+          kind: ExternalSecret
+          metadata:
+            name: azure-ad-client-secret
+            namespace: openshift-config
+          spec:
+            refreshInterval: 1h
+            secretStoreRef:
+              name: vault-secret-store
+              kind: SecretStore
+            target:
+              name: openid-client-secret-azuread
+              creationPolicy: Owner
+            data:
+            - secretKey: clientSecret
+              remoteRef:
+                key: openshift/${ENV}/oauth
+                property: azure_ad_client_secret
+          EOF
+          
+          # OADP Backup Credentials
+          cat << EOF | oc apply -f -
+          apiVersion: external-secrets.io/v1beta1
+          kind: ExternalSecret
+          metadata:
+            name: oadp-backup-credentials
+            namespace: openshift-adp
+          spec:
+            refreshInterval: 1h
+            secretStoreRef:
+              name: vault-secret-store
+              kind: SecretStore
+            target:
+              name: cloud-credentials
+              creationPolicy: Owner
+            data:
+            - secretKey: cloud
+              remoteRef:
+                key: openshift/${ENV}/oadp
+                property: aws_credentials
+          EOF
+          
+          echo "✅ ExternalSecrets created"

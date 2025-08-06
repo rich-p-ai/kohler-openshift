@@ -1,0 +1,49 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-config
+  namespace: vault-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+data:
+  vault.hcl: |
+    ui = true
+    
+    listener "tcp" {
+      address = "0.0.0.0:8200"
+      tls_cert_file = "/vault/userconfig/vault-server-tls/tls.crt"
+      tls_key_file = "/vault/userconfig/vault-server-tls/tls.key"
+      tls_client_ca_file = "/vault/userconfig/vault-server-tls/ca.crt"
+    }
+
+    storage "file" {
+      path = "/vault/data"
+    }
+
+    # Kubernetes auth method configuration
+    auth "kubernetes" {
+      # This will be configured via API after vault is running
+    }
+
+    # Enable KV secrets engine
+    secrets "kv" {
+      path = "secret/"
+      type = "kv-v2"
+    }
+
+    # API address for high availability
+    api_addr = "https://vault.vault-system.svc.cluster.local:8200"
+    cluster_addr = "https://vault.vault-system.svc.cluster.local:8201"
+
+    # Disable mlock for containerized environments
+    disable_mlock = true
+
+    # Log level
+    log_level = "INFO"
+
+    # Telemetry
+    telemetry {
+      prometheus_retention_time = "30s"
+      disable_hostname = true
+    }
