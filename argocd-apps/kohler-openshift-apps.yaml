@@ -1,0 +1,177 @@
+---
+# ArgoCD Application for Kohler OpenShift Platform Components
+# This application manages the deployment of Kohler-specific OpenShift components
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kohler-openshift-components
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+  labels:
+    app-source: kohler-openshift
+    component: platform
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: components
+    directory:
+      recurse: true
+      include: "*/kustomization.yaml"
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=false
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
+    
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+# ArgoCD Application for Kohler Groups Configuration
+# This application manages group-based configurations and RBAC
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kohler-groups-config
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+  labels:
+    app-source: kohler-openshift
+    component: groups
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: groups
+    directory:
+      recurse: true
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=false
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
+    
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
+
+---
+# ArgoCD ApplicationSet for Environment-Specific Deployments
+# This manages deployments across different environments (dev, dr, prd, hub)
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: kohler-environment-apps
+  namespace: openshift-gitops
+  labels:
+    app-source: kohler-openshift
+    component: environments
+spec:
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          environment: kohler
+  - list:
+      elements:
+      - cluster: dev
+        environment: development
+        domain: dev.kohler.com
+      - cluster: dr
+        environment: disaster-recovery
+        domain: dr.kohler.com
+      - cluster: prd
+        environment: production
+        domain: kohler.com
+      - cluster: hub
+        environment: hub
+        domain: hub.kohler.com
+  
+  template:
+    metadata:
+      name: 'kohler-{{cluster}}-environment'
+      namespace: openshift-gitops
+      annotations:
+        argocd.argoproj.io/sync-wave: "30"
+      labels:
+        app-source: kohler-openshift
+        environment: '{{environment}}'
+        cluster: '{{cluster}}'
+    spec:
+      project: default
+      
+      source:
+        repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+        targetRevision: HEAD
+        path: 'clusters/{{cluster}}'
+        plugin:
+          env:
+          - name: CLUSTER_NAME
+            value: '{{cluster}}'
+          - name: CLUSTER_DOMAIN  
+            value: '{{domain}}'
+          - name: ENVIRONMENT
+            value: '{{environment}}'
+      
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: openshift-gitops
+      
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+          - Validate=false
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
+          - RespectIgnoreDifferences=true
+        
+        retry:
+          limit: 5
+          backoff:
+            duration: 10s
+            factor: 2
+            maxDuration: 5m

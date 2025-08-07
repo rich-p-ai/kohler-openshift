@@ -18,6 +18,29 @@ projects:
 
 applications:
 
+  # Kohler OpenShift Platform Components
+  kohler-openshift-components:
+    annotations:
+      argocd.argoproj.io/sync-wave: '20'
+    destination:
+      namespace: openshift-gitops
+    source:
+      path: components
+      directory:
+        recurse: true
+        include: "*/kustomization.yaml"
+
+  # Kohler Groups and RBAC Configuration
+  kohler-groups-config:
+    annotations:
+      argocd.argoproj.io/sync-wave: '15'
+    destination:
+      namespace: openshift-gitops
+    source:
+      path: groups
+      directory:
+        recurse: true
+
   cert-manager-operator:
     annotations:
       argocd.argoproj.io/compare-options: IgnoreExtraneous
