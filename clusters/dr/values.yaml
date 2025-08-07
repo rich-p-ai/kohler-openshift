@@ -252,15 +252,17 @@ applications:
 # Project Configuration
 projects:
   cluster-config:
-    description: "Core cluster infrastructure configuration for OCP-DEV"
+    annotations:
+      notifications.argoproj.io/subscribe.on-sync-failed.slack: cluster-gitops
+      notifications.argoproj.io/subscribe.on-health-degraded.slack: cluster-gitops
+    description: "Core cluster infrastructure configuration for OCP-DR"
+    namespace: openshift-gitops
     sourceRepos:
-    - "https://github.com/rich-p-ai/kohler-openshift.git"
-    destinations:
-    - namespace: "*"
-      server: "https://kubernetes.default.svc"
-    clusterResourceWhitelist:
-    - group: "*"
-      kind: "*"
-    namespaceResourceWhitelist:
-    - group: "*"
-      kind: "*"
+    - "{{ .Values.default.app.source.repoURL }}"
+    destinations: |
+      - namespace: '*'
+        server: https://kubernetes.default.svc
+    extraFields: |
+      clusterResourceWhitelist:
+      - group: '*'
+        kind: '*'
