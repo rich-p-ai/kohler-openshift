@@ -1,8 +1,20 @@
-# OCP-DEV Cluster Configuration
-# Critical Infrastructure Components for Dev Environment
+# OCP-DR Cluster Configuration
+# Critical Infrastructure Components for DR Environment
 
 default:
-  project: cluster-config
+  project:
+    name: cluster-config
+    description: Project for DR cluster configuration
+    namespace: openshift-gitops
+    sourceRepos:
+    - "{{ .Values.default.app.source.repoURL }}"
+    destinations: |
+      - namespace: '*'
+        server: https://kubernetes.default.svc
+    extraFields: |
+      clusterResourceWhitelist:
+      - group: '*'
+        kind: '*'
   app:
     enabled: true
     enableAutoSync: true
@@ -11,7 +23,7 @@ default:
     labels:
       app-source: cluster-config
       repo: kohler-openshift
-      cluster: ocp-dev
+      cluster: ocp-dr
     destination:
       namespace: openshift-gitops
       server: https://kubernetes.default.svc
