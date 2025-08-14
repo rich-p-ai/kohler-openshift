@@ -53,10 +53,10 @@ spec:
             - networkName: VLAN225
           numCPUs: 8
           numCoresPerSocket: 2
-          server: uswivc02.kohlerco.com
           template: ocp2-sz7qn-rhcos-generated-region-generated-zone
           workspace:
             datacenter: VxRail-Datacenter
             datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-3424f606-f285-4436-9c7e-f1497032666a
             folder: /VxRail-Datacenter/vm/openshiftocp1/
             resourcePool: /VxRail-Datacenter/host/VXRail-LinuxProd/Resources
+            server: uswivc02.kohlerco.com
