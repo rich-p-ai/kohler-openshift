@@ -205,17 +205,29 @@ applications:
   #   destination:
   #     namespace: open-cluster-management
       
-  # vault-config-operator:
-  #   enabled: false  # Vault integration - enable if needed
-  #   labels:
-  #     component: security
-  #     phase: advanced
-  #   source:
-  #     path: components/vault-config-operator
-  #   destination:
-  #     namespace: vault-config-operator
-  #   syncOptions:
-  #   - CreateNamespace=true
+  vault-deployment:
+    enabled: true
+    labels:
+      component: security
+      phase: advanced
+    source:
+      path: components/vault-deployment
+    destination:
+      namespace: vault-system
+    syncOptions:
+    - CreateNamespace=true
+
+  vault-secrets-operator:
+    enabled: true
+    labels:
+      component: security
+      phase: advanced
+    source:
+      path: components/vault-secrets-operator
+    destination:
+      namespace: vault-secrets-system
+    syncOptions:
+    - CreateNamespace=true
     
   # kube-ops-view:
   #   enabled: false  # Cluster visualization - enable if needed

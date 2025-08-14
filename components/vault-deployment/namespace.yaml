@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vault-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    name: vault-system
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/part-of: vault

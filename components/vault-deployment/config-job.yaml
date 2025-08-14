@@ -1,0 +1,109 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-config
+  namespace: vault-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  labels:
+    app: vault
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/part-of: vault
+spec:
+  template:
+    metadata:
+      labels:
+        app: vault
+        app.kubernetes.io/name: vault
+        app.kubernetes.io/part-of: vault
+    spec:
+      serviceAccountName: vault
+      restartPolicy: Never
+      containers:
+      - name: vault-config
+        image: hashicorp/vault:1.15.2
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Wait for Vault to be ready and unsealed
+          echo "Waiting for Vault to be ready and unsealed..."
+          until vault status | grep -q "Sealed.*false"; do
+            sleep 5
+          done
+          
+          # Get root token
+          echo "Getting root token..."
+          ROOT_TOKEN=$(kubectl get secret vault-root-token -o jsonpath='{.data.root-token}' | base64 -d)
+          export VAULT_TOKEN="$ROOT_TOKEN"
+          
+          # Check if Kubernetes auth is already enabled
+          if vault auth list | grep -q "kubernetes/"; then
+            echo "Kubernetes auth already enabled"
+          else
+            # Enable Kubernetes auth
+            echo "Enabling Kubernetes auth..."
+            vault auth enable kubernetes
+          fi
+          
+          # Configure Kubernetes auth
+          echo "Configuring Kubernetes auth..."
+          vault write auth/kubernetes/config \
+            kubernetes_host="https://kubernetes.default.svc" \
+            kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+            token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+          
+          # Create policy for VSO
+          echo "Creating VSO policy..."
+          vault policy write vault-secrets-operator - <<EOF
+          # Vault Secrets Operator policy
+          path "secret/data/*" {
+            capabilities = ["read"]
+          }
+          path "secret/metadata/*" {
+            capabilities = ["read"]
+          }
+          path "auth/kubernetes/login" {
+            capabilities = ["create", "read"]
+          }
+          EOF
+          
+          # Create role for VSO
+          echo "Creating VSO role..."
+          vault write auth/kubernetes/role/vault-secrets-operator \
+            bound_service_account_names=vault-secrets-operator \
+            bound_service_account_namespaces=vault-secrets-system \
+            policies=vault-secrets-operator \
+            ttl=1h
+          
+          # Enable KV v2 secrets engine
+          echo "Enabling KV v2 secrets engine..."
+          if ! vault secrets list | grep -q "secret/"; then
+            vault secrets enable -path=secret kv-v2
+          fi
+          
+          # Create example secret
+          echo "Creating example secret..."
+          vault kv put secret/example \
+            username="admin" \
+            password="changeme"
+          
+          echo "Vault configuration completed successfully"
+        env:
+        - name: VAULT_ADDR
+          value: "http://vault:8200"
+        - name: VAULT_SKIP_VERIFY
+          value: "true"
+        - name: VAULT_CACERT
+          value: "/vault/config/ca.crt"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      backoffLimit: 3

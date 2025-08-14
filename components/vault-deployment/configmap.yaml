@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-config
+  namespace: vault-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+data:
+  vault.json: |
+    {
+      "storage": {
+        "file": {
+          "path": "/vault/data"
+        }
+      },
+      "listener": {
+        "tcp": {
+          "address": "0.0.0.0:8200",
+          "tls_disable": true
+        }
+      },
+      "ui": true,
+      "disable_mlock": true,
+      "api_addr": "https://vault-ui-vault-system.apps.ocp2.kohlerco.com",
+      "cluster_addr": "https://vault.vault-system.svc:8201"
+    }

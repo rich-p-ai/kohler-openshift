@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  namespace: vault-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app: vault
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/part-of: vault
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8200
+    targetPort: 8200
+    protocol: TCP
+  - name: https-internal
+    port: 8201
+    targetPort: 8201
+    protocol: TCP
+  selector:
+    app: vault

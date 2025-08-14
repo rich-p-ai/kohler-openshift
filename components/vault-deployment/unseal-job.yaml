@@ -1,0 +1,75 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-unseal
+  namespace: vault-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  labels:
+    app: vault
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/part-of: vault
+spec:
+  template:
+    metadata:
+      labels:
+        app: vault
+        app.kubernetes.io/name: vault
+        app.kubernetes.io/part-of: vault
+    spec:
+      serviceAccountName: vault
+      restartPolicy: Never
+      containers:
+      - name: vault-unseal
+        image: hashicorp/vault:1.15.2
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Wait for Vault to be ready
+          echo "Waiting for Vault to be ready..."
+          until vault status; do
+            sleep 5
+          done
+          
+          # Check if Vault is already unsealed
+          if vault status | grep -q "Sealed.*false"; then
+            echo "Vault is already unsealed"
+            exit 0
+          fi
+          
+          # Get unseal keys from secret
+          echo "Retrieving unseal keys..."
+          kubectl get secret vault-unseal-keys -o jsonpath='{.data.unseal-keys\.txt}' | base64 -d > /tmp/unseal-keys.txt
+          
+          # Unseal Vault with first 3 keys
+          echo "Unsealing Vault..."
+          head -3 /tmp/unseal-keys.txt | while read -r key; do
+            vault operator unseal "$key"
+          done
+          
+          # Verify Vault is unsealed
+          if vault status | grep -q "Sealed.*false"; then
+            echo "Vault unsealed successfully"
+          else
+            echo "Failed to unseal Vault"
+            exit 1
+          fi
+        env:
+        - name: VAULT_ADDR
+          value: "http://vault:8200"
+        - name: VAULT_SKIP_VERIFY
+          value: "true"
+        - name: VAULT_CACERT
+          value: "/vault/config/ca.crt"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      backoffLimit: 3

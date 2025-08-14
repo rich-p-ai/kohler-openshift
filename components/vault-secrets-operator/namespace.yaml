@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vault-secrets-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    name: vault-secrets-system
+    app.kubernetes.io/name: vault-secrets-operator
+    app.kubernetes.io/part-of: vault-secrets-operator

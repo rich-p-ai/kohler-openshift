@@ -1,0 +1,81 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-init
+  namespace: vault-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  labels:
+    app: vault
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/part-of: vault
+spec:
+  template:
+    metadata:
+      labels:
+        app: vault
+        app.kubernetes.io/name: vault
+        app.kubernetes.io/part-of: vault
+    spec:
+      serviceAccountName: vault
+      restartPolicy: Never
+      containers:
+      - name: vault-init
+        image: hashicorp/vault:1.15.2
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Wait for Vault to be ready
+          echo "Waiting for Vault to be ready..."
+          until vault status; do
+            sleep 5
+          done
+          
+          # Check if Vault is already initialized
+          if vault status | grep -q "Initialized.*true"; then
+            echo "Vault is already initialized"
+            exit 0
+          fi
+          
+          # Initialize Vault
+          echo "Initializing Vault..."
+          INIT_RESPONSE=$(vault operator init -key-shares=5 -key-threshold=3 -format=json)
+          
+          # Extract and store unseal keys
+          echo "$INIT_RESPONSE" | jq -r '.keys[]' | while read -r key; do
+            echo "$key" >> /tmp/unseal-keys.txt
+          done
+          
+          # Extract root token
+          ROOT_TOKEN=$(echo "$INIT_RESPONSE" | jq -r '.root_token')
+          
+          # Store unseal keys in Kubernetes secret
+          kubectl create secret generic vault-unseal-keys \
+            --from-file=unseal-keys.txt=/tmp/unseal-keys.txt \
+            --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Store root token in Kubernetes secret
+          kubectl create secret generic vault-root-token \
+            --from-literal=root-token="$ROOT_TOKEN" \
+            --dry-run=client -o yaml | kubectl apply -f -
+          
+          echo "Vault initialization completed successfully"
+        env:
+        - name: VAULT_ADDR
+          value: "http://vault:8200"
+        - name: VAULT_SKIP_VERIFY
+          value: "true"
+        - name: VAULT_CACERT
+          value: "/vault/config/ca.crt"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      backoffLimit: 3

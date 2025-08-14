@@ -1,0 +1,24 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: vault-ui
+  namespace: vault-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    haproxy.router.openshift.io/timeout: 30s
+  labels:
+    app: vault
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/part-of: vault
+spec:
+  host: vault-ui-vault-system.apps.ocp2.kohlerco.com
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: vault
+    weight: 100
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
