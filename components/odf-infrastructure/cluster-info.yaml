@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/part-of: openshift-data-foundation
     app.kubernetes.io/component: storage-nodes
 data:
-  cluster-name: "ocp2"
+  cluster-name: "ocp2-sz7qn"
   cluster-domain: "kohlerco.com"
   cluster-type: "production"
   storage-platform: "vsphere"

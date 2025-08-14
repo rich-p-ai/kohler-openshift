@@ -2,31 +2,31 @@
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
-  name: ${CLUSTER_NAME}-odf-infra
+  name: ocp2-sz7qn-odf-infra
   namespace: openshift-machine-api
   annotations:
     argocd.argoproj.io/sync-wave: "4"
   labels:
-    machine.openshift.io/cluster-api-cluster: ${CLUSTER_NAME}
-    machine.openshift.io/cluster-api-machineset: ${CLUSTER_NAME}-odf-infra
+    machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
+    machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
     machine.openshift.io/machine-type: infra
     machine.openshift.io/machine-role: infra
     app.kubernetes.io/name: odf-infrastructure
     app.kubernetes.io/part-of: openshift-data-foundation
     app.kubernetes.io/component: storage-nodes
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      machine.openshift.io/cluster-api-cluster: ${CLUSTER_NAME}
-      machine.openshift.io/cluster-api-machineset: ${CLUSTER_NAME}-odf-infra
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
+        machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
   template:
     metadata:
       labels:
-        machine.openshift.io/cluster-api-cluster: ${CLUSTER_NAME}
+        machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
         machine.openshift.io/cluster-api-machine-role: infra
         machine.openshift.io/cluster-api-machine-type: infra
-        machine.openshift.io/cluster-api-machineset: ${CLUSTER_NAME}-odf-infra
+        machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
         # ODF Storage Labels
         cluster.ocs.openshift.io/openshift-storage: ""
         node-role.kubernetes.io/infra: ""
@@ -73,8 +73,8 @@ spec:
             resourcePool: /VxRail-Datacenter/host/VXRail-LinuxProd/Resources
             server: uswivc02.kohlerco.com
           
-          # RHCOS Template
-          template: ${CLUSTER_NAME}-rhcos-generated-region-generated-zone
+                      # RHCOS Template
+            template: ocp2-sz7qn-rhcos-generated-region-generated-zone
           
           # Failure Domain Configuration
           failureDomain: default_domain

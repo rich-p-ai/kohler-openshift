@@ -47,4 +47,4 @@ vars:
       name: cluster-info
       apiVersion: v1
     fieldref:
-      fieldpath: data.cluster-name
+      fieldPath: data.cluster-name
