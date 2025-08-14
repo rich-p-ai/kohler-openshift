@@ -14,12 +14,12 @@ metadata:
     app.kubernetes.io/name: odf-infrastructure
     app.kubernetes.io/part-of: openshift-data-foundation
     app.kubernetes.io/component: storage-nodes
-  spec:
-    replicas: 3
-    selector:
-      matchLabels:
-        machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
-        machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
+      machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
   template:
     metadata:
       labels:
