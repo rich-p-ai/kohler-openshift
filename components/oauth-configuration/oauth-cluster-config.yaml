@@ -7,6 +7,15 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   identityProviders:
+  # HTPasswd provider for immediate local access
+  - mappingMethod: claim
+    name: htpasswd
+    htpasswd:
+      fileData:
+        name: htpasswd-secret
+    type: HTPasswd
+    
+  # Azure AD SSO (commented out until properly configured)
   - mappingMethod: claim
     name: azureadsso
     openID:
