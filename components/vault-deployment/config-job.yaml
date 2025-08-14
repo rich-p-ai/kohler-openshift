@@ -5,7 +5,7 @@ metadata:
   name: vault-config
   namespace: vault-system
   annotations:
-    argocd.argoproj.io/sync-wave: "8"
+    argocd.argoproj.io/sync-wave: "12"
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
   labels:
