@@ -1,0 +1,5 @@
+[33mcda3def[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m Fix DR values.yaml projects structure and clean up syntax
+[33m3a5dc53[m Fix DR cluster values.yaml structure for Helm template compatibility
+[33mc002742[m Configure kohler-openshift repository connection to ArgoCD
+[33m65fc9e7[m Update OpenShift configurations
+[33m1aebd36[m Add OADP daily backup solution for application namespaces

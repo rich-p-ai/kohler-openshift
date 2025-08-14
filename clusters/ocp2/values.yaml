@@ -1,8 +1,20 @@
-# OCP-PRD Cluster Configuration
-# Critical Infrastructure Components for Production Environment
+# OCP-DR Cluster Configuration
+# Critical Infrastructure Components for DR Environment
 
 default:
-  project: cluster-config
+  project:
+    name: cluster-config
+    description: Project for DR cluster configuration
+    namespace: cluster-config
+    sourceRepos:
+    - "{{ .Values.default.app.source.repoURL }}"
+    destinations: |
+      - namespace: '*'
+        server: https://kubernetes.default.svc
+    extraFields: |
+      clusterResourceWhitelist:
+      - group: '*'
+        kind: '*'
   app:
     enabled: true
     enableAutoSync: true
@@ -11,9 +23,9 @@ default:
     labels:
       app-source: cluster-config
       repo: kohler-openshift
-      cluster: ocp-prd
+      cluster: ocp2
     destination:
-      namespace: openshift-gitops
+      namespace: cluster-config
       server: https://kubernetes.default.svc
     source:
       repoURL: https://github.com/rich-p-ai/kohler-openshift.git
@@ -33,21 +45,10 @@ default:
         factor: 2
         maxDuration: 3m
 
-# Critical Infrastructure Applications for Production
+# Critical Infrastructure Applications
 applications:
   # Phase 1: Core Infrastructure (Sync Wave 1-10)
-  gitops-operator:
-    enabled: true
-    labels:
-      component: infrastructure
-      phase: core
-    source:
-      path: components/gitops-operator
-    destination:
-      namespace: openshift-gitops-operator
-    syncOptions:
-    - CreateNamespace=true
-    
+   
   network-configuration:
     enabled: true
     labels:
@@ -56,15 +57,6 @@ applications:
     source:
       path: components/network-configuration
     
-  gitops-configuration:
-    enabled: true
-    labels:
-      component: infrastructure  
-      phase: core
-    source:
-      path: components/gitops-configuration
-    destination:
-      namespace: openshift-gitops
       
   image-registry-configuration:
     enabled: true
@@ -190,9 +182,9 @@ applications:
     source:
       path: components/security-policies
 
-  # Phase 6: Production-Specific Components
+  # Phase 6: Optional Advanced Components (Disabled by default for dev)
   acm-operator:
-    enabled: true  # Enable Advanced Cluster Management for production
+    enabled: false  # Advanced Cluster Management - enable if needed
     labels:
       component: management
       phase: advanced
@@ -204,7 +196,7 @@ applications:
     - CreateNamespace=true
     
   acm-configuration:
-    enabled: true  # Enable ACM configuration for production
+    enabled: false  # ACM configuration - enable if needed
     labels:
       component: management
       phase: advanced
@@ -212,19 +204,45 @@ applications:
       path: components/acm-configuration
     destination:
       namespace: open-cluster-management
+      
+  vault-config-operator:
+    enabled: false  # Vault integration - enable if needed
+    labels:
+      component: security
+      phase: advanced
+    source:
+      path: components/vault-config-operator
+    destination:
+      namespace: vault-config-operator
+    syncOptions:
+    - CreateNamespace=true
+    
+  kube-ops-view:
+    enabled: false  # Cluster visualization - enable if needed
+    labels:
+      component: monitoring
+      phase: advanced
+    source:
+      path: components/kube-ops-view
+    destination:
+      namespace: kube-ops-view
+    syncOptions:
+    - CreateNamespace=true
 
 # Project Configuration
 projects:
   cluster-config:
-    description: "Core cluster infrastructure configuration for OCP-PRD"
+    annotations:
+      notifications.argoproj.io/subscribe.on-sync-failed.slack: cluster-gitops
+      notifications.argoproj.io/subscribe.on-health-degraded.slack: cluster-gitops
+    description: "Core cluster infrastructure configuration for OCP-DR"
+    namespace: cluster-config
     sourceRepos:
-    - "https://github.com/rich-p-ai/kohler-openshift.git"
-    destinations:
-    - namespace: "*"
-      server: "https://kubernetes.default.svc"
-    clusterResourceWhitelist:
-    - group: "*"
-      kind: "*"
-    namespaceResourceWhitelist:
-    - group: "*"
-      kind: "*"
+    - "{{ .Values.default.app.source.repoURL }}"
+    destinations: |
+      - namespace: '*'
+        server: https://kubernetes.default.svc
+    extraFields: |
+      clusterResourceWhitelist:
+      - group: '*'
+        kind: '*'

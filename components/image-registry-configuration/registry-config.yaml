@@ -23,7 +23,7 @@ spec:
   defaultRoute: true
   routes:
   - name: default-route
-    hostname: default-route-openshift-image-registry.apps.ocp-dev.kohlerco.com
+    hostname: default-route-openshift-image-registry.apps.ocp2.kohlerco.com
     secretName: registry-tls
   
   # Resource Configuration

@@ -102,7 +102,7 @@ spec:
     
     # Configuration Management
     config:
-      url: https://openshift-gitops-server-openshift-gitops.apps.ocp-dev.kohlerco.com
+      url: https://openshift-gitops-server-openshift-gitops.apps.ocp2.kohlerco.com
       application.instanceLabelKey: argocd.argoproj.io/instance
       
       # Git repositories configuration

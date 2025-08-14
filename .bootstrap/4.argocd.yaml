@@ -1,0 +1,12 @@
+---
+apiVersion: pipelines.openshift.io/v1alpha1
+kind: GitopsService
+metadata:
+  name: cluster
+  namespace: openshift-gitops-operator
+spec:
+  # This will trigger the OpenShift GitOps operator to deploy the default ArgoCD
+  # The operator will handle all the configuration automatically
+  # No additional configuration needed - uses operator defaults        
+
+

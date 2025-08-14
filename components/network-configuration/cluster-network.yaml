@@ -8,8 +8,8 @@ metadata:
 spec:
   # Cluster Network Configuration
   clusterNetwork:
-  - cidr: 10.128.0.0/14
-    hostPrefix: 23
+  - cidr: 10.170.0.0/20
+    hostPrefix: 24
   
   # Service Network Configuration  
   serviceNetwork:

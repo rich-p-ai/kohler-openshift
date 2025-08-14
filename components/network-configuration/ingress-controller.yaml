@@ -8,7 +8,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
 spec:
   # Default domain configuration
-  domain: apps.ocp-dev.kohlerco.com
+  domain: apps.ocp2.kohlerco.com
   
   # High Availability
   replicas: 2
