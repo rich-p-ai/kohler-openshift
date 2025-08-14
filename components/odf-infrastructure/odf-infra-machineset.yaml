@@ -2,13 +2,13 @@
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
-  name: ocp-prd-jmq98-odf-infra
+  name: ocp2-sz7qn-odf-infra
   namespace: openshift-machine-api
   annotations:
     argocd.argoproj.io/sync-wave: "4"
   labels:
-    machine.openshift.io/cluster-api-cluster: ocp-prd-jmq98
-    machine.openshift.io/cluster-api-machineset: ocp-prd-jmq98-odf-infra
+    machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
+    machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
     machine.openshift.io/machine-type: infra
     machine.openshift.io/machine-role: infra
     app.kubernetes.io/name: odf-infrastructure
@@ -18,15 +18,15 @@ metadata:
     replicas: 3
     selector:
       matchLabels:
-        machine.openshift.io/cluster-api-cluster: ocp-prd-jmq98
-        machine.openshift.io/cluster-api-machineset: ocp-prd-jmq98-odf-infra
+        machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
+        machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
   template:
     metadata:
       labels:
-        machine.openshift.io/cluster-api-cluster: ocp-prd-jmq98
+        machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
         machine.openshift.io/cluster-api-machine-role: infra
         machine.openshift.io/cluster-api-machine-type: infra
-        machine.openshift.io/cluster-api-machineset: ocp-prd-jmq98-odf-infra
+        machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
         # ODF Storage Labels
         cluster.ocs.openshift.io/openshift-storage: ""
         node-role.kubernetes.io/infra: ""
@@ -53,7 +53,7 @@ metadata:
             - networkName: VLAN225
           numCPUs: 8
           numCoresPerSocket: 2
-          template: ocp-prd-jmq98-rhcos-generated-region-generated-zone
+          template: ocp2-sz7qn-rhcos-default_region-default_zone
           workspace:
             datacenter: VxRail-Datacenter
             datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-3424f606-f285-4436-9c7e-f1497032666a
