@@ -2,31 +2,31 @@
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
-  name: ocp2-sz7qn-odf-infra
+  name: ocp-prd-jmq98-odf-infra
   namespace: openshift-machine-api
   annotations:
     argocd.argoproj.io/sync-wave: "4"
   labels:
-    machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
-    machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
+    machine.openshift.io/cluster-api-cluster: ocp-prd-jmq98
+    machine.openshift.io/cluster-api-machineset: ocp-prd-jmq98-odf-infra
     machine.openshift.io/machine-type: infra
     machine.openshift.io/machine-role: infra
     app.kubernetes.io/name: odf-infrastructure
     app.kubernetes.io/part-of: openshift-data-foundation
     app.kubernetes.io/component: storage-nodes
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
-      machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        machine.openshift.io/cluster-api-cluster: ocp-prd-jmq98
+        machine.openshift.io/cluster-api-machineset: ocp-prd-jmq98-odf-infra
   template:
     metadata:
       labels:
-        machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
+        machine.openshift.io/cluster-api-cluster: ocp-prd-jmq98
         machine.openshift.io/cluster-api-machine-role: infra
         machine.openshift.io/cluster-api-machine-type: infra
-        machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
+        machine.openshift.io/cluster-api-machineset: ocp-prd-jmq98-odf-infra
         # ODF Storage Labels
         cluster.ocs.openshift.io/openshift-storage: ""
         node-role.kubernetes.io/infra: ""
@@ -53,7 +53,7 @@ spec:
             - networkName: VLAN225
           numCPUs: 8
           numCoresPerSocket: 2
-          template: ocp2-sz7qn-rhcos-generated-region-generated-zone
+          template: ocp-prd-jmq98-rhcos-generated-region-generated-zone
           workspace:
             datacenter: VxRail-Datacenter
             datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-3424f606-f285-4436-9c7e-f1497032666a
