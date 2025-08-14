@@ -1,0 +1,50 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    component: infrastructure
+    phase: platform
+    purpose: odf-storage-nodes
+    app.kubernetes.io/name: odf-infrastructure
+    app.kubernetes.io/part-of: openshift-data-foundation
+    app.kubernetes.io/component: storage-nodes
+    app.kubernetes.io/version: "1.0"
+
+resources:
+  # Cluster information for variable substitution
+  - ./cluster-info.yaml
+  
+  # ODF Infrastructure MachineSet
+  - ./odf-infra-machineset.yaml
+  
+  # ODF Infrastructure Autoscaler
+  - ./odf-infra-autoscaler.yaml
+  
+  # ODF Infrastructure Configuration
+  - ./odf-infra-config.yaml
+
+# Common labels for all resources
+commonLabels:
+  app.kubernetes.io/name: odf-infrastructure
+  app.kubernetes.io/part-of: openshift-data-foundation
+  app.kubernetes.io/component: storage-nodes
+  app.kubernetes.io/version: "1.0"
+  cluster.ocs.openshift.io/openshift-storage: ""
+
+# Common annotations
+commonAnnotations:
+  argocd.argoproj.io/sync-wave: "4"
+  argocd.argoproj.io/sync-options: "CreateNamespace=true"
+
+# Variables for cluster-specific customization
+vars:
+  - name: CLUSTER_NAME
+    objref:
+      kind: ConfigMap
+      name: cluster-info
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.cluster-name

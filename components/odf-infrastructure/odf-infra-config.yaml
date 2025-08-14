@@ -1,0 +1,175 @@
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: odf-infra
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app.kubernetes.io/name: odf-infrastructure
+    app.kubernetes.io/part-of: openshift-data-foundation
+    app.kubernetes.io/component: storage-nodes
+spec:
+  machineConfigSelector:
+    matchExpressions:
+    - key: machineconfiguration.openshift.io/role
+      operator: In
+      values:
+      - worker
+      - infra
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/infra: ""
+      cluster.ocs.openshift.io/openshift-storage: ""
+  paused: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: odf-infra-setup-instructions
+  namespace: openshift-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app.kubernetes.io/name: odf-infrastructure
+    app.kubernetes.io/part-of: openshift-data-foundation
+    app.kubernetes.io/component: storage-nodes
+data:
+  README.md: |
+    # ODF Infrastructure Node Configuration
+    
+    This component manages the configuration for ODF infrastructure nodes.
+    
+    ## New ODF Infrastructure Nodes
+    
+    The following 3 new infrastructure nodes will be created via MachineSet:
+    - ${CLUSTER_NAME}-odf-infra-0 (rack0)
+    - ${CLUSTER_NAME}-odf-infra-1 (rack1) 
+    - ${CLUSTER_NAME}-odf-infra-2 (rack2)
+    
+    ## MachineSet Configuration
+    
+    **MachineSet Name**: ${CLUSTER_NAME}-odf-infra
+    **Replicas**: 3 (minimum) to 6 (maximum with autoscaling)
+    
+    **Compute Resources**:
+    - CPUs: 8 (2 cores per socket)
+    - Memory: 64 GB
+    - OS Disk: 250 GB
+    - Data Disk 1: 2 TB (for ODF storage)
+    - Data Disk 2: 1 TB (additional storage)
+    
+    ## Automatic Configuration
+    
+    The MachineSet automatically applies:
+    - `node-role.kubernetes.io/infra=""` label
+    - `cluster.ocs.openshift.io/openshift-storage=""` label
+    - `topology.kubernetes.io/rack="rack0"` label (will be updated per node)
+    
+    ## Manual Steps Required (if needed)
+    
+    1. Update rack topology labels for each node:
+    ```bash
+    # After nodes are created, update rack labels
+    oc label node ${CLUSTER_NAME}-odf-infra-0 topology.kubernetes.io/rack="rack0"
+    oc label node ${CLUSTER_NAME}-odf-infra-1 topology.kubernetes.io/rack="rack1"
+    oc label node ${CLUSTER_NAME}-odf-infra-2 topology.kubernetes.io/rack="rack2"
+    ```
+    
+    2. Apply taints to prevent regular workloads:
+    ```bash
+    oc adm taint node ${CLUSTER_NAME}-odf-infra-0 node-role.kubernetes.io/infra=:NoSchedule
+    oc adm taint node ${CLUSTER_NAME}-odf-infra-1 node-role.kubernetes.io/infra=:NoSchedule
+    oc adm taint node ${CLUSTER_NAME}-odf-infra-2 node-role.kubernetes.io/infra=:NoSchedule
+    ```
+    
+    3. Verify the configuration:
+    ```bash
+    # Check infra nodes
+    oc get nodes -l node-role.kubernetes.io/infra=
+    
+    # Check storage labels
+    oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
+    
+    # Check rack topology
+    oc get nodes --show-labels | grep topology.kubernetes.io/rack
+    ```
+    
+    ## Infrastructure Workloads
+    
+    These nodes will host:
+    - ODF Storage Components (Ceph OSDs, MDS, MONs)
+    - NooBaa Multi-Cloud Gateway
+    - CSI drivers for RBD and CephFS
+    - Image Registry (if configured for infra nodes)
+    - Ingress Controllers (if configured for infra nodes)
+    
+    ## Node Selectors for Applications
+    
+    Applications should use these selectors:
+    ```yaml
+    nodeSelector:
+      node-role.kubernetes.io/infra: ""
+      cluster.ocs.openshift.io/openshift-storage: ""
+    tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/infra
+      operator: Exists
+    ```
+    
+    ## ODF Storage Configuration
+    
+    These nodes will provide:
+    - **Ceph Object Storage Daemons (OSDs)**: 3 OSDs (one per node)
+    - **Ceph Metadata Servers (MDS)**: 2 MDS instances for CephFS
+    - **Ceph Monitors (MONs)**: 3 MON instances for cluster quorum
+    - **NooBaa Multi-Cloud Gateway**: S3-compatible object storage
+    - **CSI Drivers**: RBD (block) and CephFS (file) storage
+    
+    ## Storage Classes Created
+    
+    After ODF deployment, these storage classes will be available:
+    - `ocs-storagecluster-ceph-rbd`: Block storage for databases
+    - `ocs-storagecluster-cephfs`: File storage for applications
+    - `openshift-storage.noobaa.io`: Object storage buckets
+    
+    ## Scaling Configuration
+    
+    **Autoscaler**: ${CLUSTER_NAME}-odf-infra-autoscaler
+    - **Minimum**: 3 nodes (required for ODF)
+    - **Maximum**: 6 nodes (for future expansion)
+    
+    **Scaling Triggers**:
+    - CPU utilization > 80%
+    - Memory utilization > 80%
+    - Storage capacity > 85%
+    
+    ## Monitoring and Health Checks
+    
+    Monitor these metrics:
+    - Node resource utilization (CPU, Memory, Disk)
+    - Ceph cluster health status
+    - ODF operator status
+    - Storage class availability
+    - PVC binding success rates
+    
+    ## Troubleshooting
+    
+    **Common Issues**:
+    1. **Nodes not joining cluster**: Check vSphere credentials and network
+    2. **ODF pods not scheduling**: Verify node labels and taints
+    3. **Storage not provisioning**: Check Ceph cluster health
+    4. **Performance issues**: Monitor resource utilization
+    
+    **Useful Commands**:
+    ```bash
+    # Check MachineSet status
+    oc get machineset ${CLUSTER_NAME}-odf-infra -n openshift-machine-api
+    
+    # Check machine status
+    oc get machines -l machine.openshift.io/cluster-api-machineset=${CLUSTER_NAME}-odf-infra
+    
+    # Check ODF status
+    oc get storagecluster -n openshift-storage
+    oc get cephcluster -n openshift-storage
+    ```

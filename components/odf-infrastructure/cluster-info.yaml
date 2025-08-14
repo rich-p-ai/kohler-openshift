@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-info
+  namespace: openshift-machine-api
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app.kubernetes.io/name: odf-infrastructure
+    app.kubernetes.io/part-of: openshift-data-foundation
+    app.kubernetes.io/component: storage-nodes
+data:
+  cluster-name: "ocp2"
+  cluster-domain: "kohlerco.com"
+  cluster-type: "production"
+  storage-platform: "vsphere"
+  storage-network: "VLAN225"

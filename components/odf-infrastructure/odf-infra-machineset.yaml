@@ -1,0 +1,90 @@
+---
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  name: ${CLUSTER_NAME}-odf-infra
+  namespace: openshift-machine-api
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    machine.openshift.io/cluster-api-cluster: ${CLUSTER_NAME}
+    machine.openshift.io/cluster-api-machineset: ${CLUSTER_NAME}-odf-infra
+    machine.openshift.io/machine-type: infra
+    machine.openshift.io/machine-role: infra
+    app.kubernetes.io/name: odf-infrastructure
+    app.kubernetes.io/part-of: openshift-data-foundation
+    app.kubernetes.io/component: storage-nodes
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: ${CLUSTER_NAME}
+      machine.openshift.io/cluster-api-machineset: ${CLUSTER_NAME}-odf-infra
+  template:
+    metadata:
+      labels:
+        machine.openshift.io/cluster-api-cluster: ${CLUSTER_NAME}
+        machine.openshift.io/cluster-api-machine-role: infra
+        machine.openshift.io/cluster-api-machine-type: infra
+        machine.openshift.io/cluster-api-machineset: ${CLUSTER_NAME}-odf-infra
+        # ODF Storage Labels
+        cluster.ocs.openshift.io/openshift-storage: ""
+        node-role.kubernetes.io/infra: ""
+        # Rack topology for ODF
+        topology.kubernetes.io/rack: "rack0"
+        app.kubernetes.io/name: odf-infrastructure
+        app.kubernetes.io/part-of: openshift-data-foundation
+        app.kubernetes.io/component: storage-nodes
+    spec:
+      lifecycleHooks: {}
+      metadata: {}
+      providerSpec:
+        value:
+          # Compute Resources - Optimized for ODF Storage
+          numCoresPerSocket: 2
+          memoryMiB: 65536  # 64 GB memory for ODF workloads
+          numCPUs: 8        # 8 CPUs for storage operations
+          
+          # Storage Configuration
+          diskGiB: 250      # OS disk
+          disk1GiB: 2048    # Data disk for ODF (2TB)
+          disk2GiB: 1024    # Additional data disk (1TB)
+          
+          # Network Configuration
+          network:
+            devices:
+              - networkName: VLAN225
+          
+          # Credentials and User Data
+          userDataSecret:
+            name: worker-user-data
+          credentialsSecret:
+            name: vsphere-cloud-credentials
+          
+          # VSphere Provider Configuration
+          kind: VSphereMachineProviderSpec
+          apiVersion: machine.openshift.io/v1beta1
+          
+          # Workspace Configuration
+          workspace:
+            datacenter: VxRail-Datacenter
+            datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-3424f606-f285-4436-9c7e-f1497032666a
+            folder: /VxRail-Datacenter/vm/openshiftocp1/
+            resourcePool: /VxRail-Datacenter/host/VXRail-LinuxProd/Resources
+            server: uswivc02.kohlerco.com
+          
+          # RHCOS Template
+          template: ${CLUSTER_NAME}-rhcos-generated-region-generated-zone
+          
+          # Failure Domain Configuration
+          failureDomain: default_domain
+          
+          # Additional Storage Policies
+          diskType: thin
+          cloneMode: fullClone
+          
+          # Network Interface Configuration
+          networkDevices:
+            - networkName: VLAN225
+              dhcp4: true
+              dhcp6: false

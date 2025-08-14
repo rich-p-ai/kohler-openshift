@@ -71,27 +71,27 @@ applications:
   #   - CreateNamespace=true
 
   # Phase 2: Storage and Data Protection (Sync Wave 5-25)
-  # odf-operator:
-  #   enabled: true
-  #   labels:
-  #     component: storage
-  #     phase: data
-  #   source:
-  #     path: components/odf-operator
-  #   destination:
-  #     namespace: openshift-storage
-  #   syncOptions:
-  #   - CreateNamespace=true
+  odf-operator:
+    enabled: true
+    labels:
+      component: storage
+      phase: data
+    source:
+      path: components/odf-operator
+    destination:
+      namespace: openshift-storage
+    syncOptions:
+    - CreateNamespace=true
     
-  # odf-configuration:
-  #   enabled: true
-  #   labels:
-  #     component: storage
-  #     phase: data
-  #   source:
-  #     path: components/odf-configuration
-  #   destination:
-  #     namespace: openshift-storage
+  odf-configuration:
+    enabled: true
+    labels:
+      component: storage
+      phase: data
+    source:
+      path: components/odf-configuration
+    destination:
+      namespace: openshift-storage
 
   # oadp-operator:
   #   enabled: true
@@ -150,13 +150,15 @@ applications:
   #   - CreateNamespace=true
     
   # Phase 5: Platform Integration (Sync Wave 4-6)
-  # node-configuration:
-  #   enabled: true
-  #   labels:
-  #     component: infrastructure
-  #     phase: platform
-  #   source:
-  #     path: components/node-configuration
+  odf-infrastructure:
+    enabled: true
+    labels:
+      component: infrastructure
+      phase: platform
+    source:
+      path: components/odf-infrastructure
+    destination:
+      namespace: openshift-machine-api
       
   # rbac-configuration:
   #   enabled: true
