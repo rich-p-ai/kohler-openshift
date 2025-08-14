@@ -49,81 +49,81 @@ default:
 applications:
   # Phase 1: Core Infrastructure (Sync Wave 1-10)
    
-  network-configuration:
-    enabled: true
-    labels:
-      component: infrastructure
-      phase: core
-    source:
-      path: components/network-configuration
+  # network-configuration:
+  #   enabled: true
+  #   labels:
+  #     component: infrastructure
+  #     phase: core
+  #   source:
+  #     path: components/network-configuration
     
       
-  image-registry-configuration:
-    enabled: true
-    labels:
-      component: infrastructure
-      phase: core
-    source:
-      path: components/image-registry-configuration
-    destination:
-      namespace: openshift-image-registry
-    syncOptions:
-    - CreateNamespace=true
+  # image-registry-configuration:
+  #   enabled: true
+  #   labels:
+  #     component: infrastructure
+  #     phase: core
+  #   source:
+  #     path: components/image-registry-configuration
+  #   destination:
+  #     namespace: openshift-image-registry
+  #   syncOptions:
+  #   - CreateNamespace=true
 
   # Phase 2: Storage and Data Protection (Sync Wave 5-25)
-  odf-operator:
-    enabled: true
-    labels:
-      component: storage
-      phase: data
-    source:
-      path: components/odf-operator
-    destination:
-      namespace: openshift-storage
-    syncOptions:
-    - CreateNamespace=true
+  # odf-operator:
+  #   enabled: true
+  #   labels:
+  #     component: storage
+  #     phase: data
+  #   source:
+  #     path: components/odf-operator
+  #   destination:
+  #     namespace: openshift-storage
+  #   syncOptions:
+  #   - CreateNamespace=true
     
-  odf-configuration:
-    enabled: true
-    labels:
-      component: storage
-      phase: data
-    source:
-      path: components/odf-configuration
-    destination:
-      namespace: openshift-storage
+  # odf-configuration:
+  #   enabled: true
+  #   labels:
+  #     component: storage
+  #     phase: data
+  #   source:
+  #     path: components/odf-configuration
+  #   destination:
+  #     namespace: openshift-storage
 
-  oadp-operator:
-    enabled: true
-    labels:
-      component: backup
-      phase: data
-    source:
-      path: components/oadp-operator
-    destination:
-      namespace: openshift-adp
-    syncOptions:
-    - CreateNamespace=true
+  # oadp-operator:
+  #   enabled: true
+  #   labels:
+  #     component: backup
+  #     phase: data
+  #   source:
+  #     path: components/oadp-operator
+  #   destination:
+  #     namespace: openshift-adp
+  #   syncOptions:
+  #   - CreateNamespace=true
     
-  oadp-configuration:
-    enabled: true
-    labels:
-      component: backup
-      phase: data
-    source:
-      path: components/oadp-configuration
-    destination:
-      namespace: openshift-adp
+  # oadp-configuration:
+  #   enabled: true
+  #   labels:
+  #     component: backup
+  #     phase: data
+  #   source:
+  #     path: components/oadp-configuration
+  #   destination:
+  #     namespace: openshift-adp
       
-  oadp-scheduled-backups:
-    enabled: true
-    labels:
-      component: backup
-      phase: data
-    source:
-      path: components/oadp-scheduled-backups
-    destination:
-      namespace: openshift-adp
+  # oadp-scheduled-backups:
+  #   enabled: true
+  #   labels:
+  #     component: backup
+  #     phase: data
+  #   source:
+  #     path: components/oadp-scheduled-backups
+  #   destination:
+  #     namespace: openshift-adp
 
   # Phase 3: Authentication and Security (Sync Wave 10)
   oauth-configuration:
@@ -137,112 +137,112 @@ applications:
       namespace: openshift-config
 
   # Phase 4: Additional Operators (Sync Wave 5)
-  cert-manager-operator:
-    enabled: true
-    labels:
-      component: security
-      phase: operators
-    source:
-      path: components/cert-manager-operator
-    destination:
-      namespace: cert-manager-operator
-    syncOptions:
-    - CreateNamespace=true
+  # cert-manager-operator:
+  #   enabled: true
+  #   labels:
+  #     component: security
+  #     phase: operators
+  #   source:
+  #     path: components/cert-manager-operator
+  #   destination:
+  #     namespace: cert-manager-operator
+  #   syncOptions:
+  #   - CreateNamespace=true
     
   # Phase 5: Platform Integration (Sync Wave 4-6)
-  node-configuration:
-    enabled: true
-    labels:
-      component: infrastructure
-      phase: platform
-    source:
-      path: components/node-configuration
+  # node-configuration:
+  #   enabled: true
+  #   labels:
+  #     component: infrastructure
+  #     phase: platform
+  #   source:
+  #     path: components/node-configuration
       
-  rbac-configuration:
-    enabled: true
-    labels:
-      component: security
-      phase: platform
-    source:
-      path: components/rbac-configuration
+  # rbac-configuration:
+  #   enabled: true
+  #   labels:
+  #     component: security
+  #     phase: platform
+  #   source:
+  #     path: components/rbac-configuration
       
-  vsphere-configuration:
-    enabled: true
-    labels:
-      component: platform
-      phase: platform
-    source:
-      path: components/vsphere-configuration
+  # vsphere-configuration:
+  #   enabled: true
+  #   labels:
+  #     component: platform
+  #     phase: platform
+  #   source:
+  #     path: components/vsphere-configuration
       
-  security-policies:
-    enabled: true
-    labels:
-      component: security
-      phase: platform
-    source:
-      path: components/security-policies
+  # security-policies:
+  #   enabled: true
+  #   labels:
+  #     component: security
+  #     phase: platform
+  #   source:
+  #     path: components/security-policies
 
   # Phase 6: Optional Advanced Components (Disabled by default for dev)
-  acm-operator:
-    enabled: false  # Advanced Cluster Management - enable if needed
-    labels:
-      component: management
-      phase: advanced
-    source:
-      path: components/acm-operator
-    destination:
-      namespace: open-cluster-management
-    syncOptions:
-    - CreateNamespace=true
+  # acm-operator:
+  #   enabled: false  # Advanced Cluster Management - enable if needed
+  #   labels:
+  #     component: management
+  #     phase: advanced
+  #   source:
+  #     path: components/acm-operator
+  #   destination:
+  #     namespace: open-cluster-management
+  #   syncOptions:
+  #   - CreateNamespace=true
     
-  acm-configuration:
-    enabled: false  # ACM configuration - enable if needed
-    labels:
-      component: management
-      phase: advanced
-    source:
-      path: components/acm-configuration
-    destination:
-      namespace: open-cluster-management
+  # acm-configuration:
+  #   enabled: false  # ACM configuration - enable if needed
+  #   labels:
+  #     component: management
+  #     phase: advanced
+  #   source:
+  #     path: components/acm-configuration
+  #   destination:
+  #     namespace: open-cluster-management
       
-  vault-config-operator:
-    enabled: false  # Vault integration - enable if needed
-    labels:
-      component: security
-      phase: advanced
-    source:
-      path: components/vault-config-operator
-    destination:
-      namespace: vault-config-operator
-    syncOptions:
-    - CreateNamespace=true
+  # vault-config-operator:
+  #   enabled: false  # Vault integration - enable if needed
+  #   labels:
+  #     component: security
+  #     phase: advanced
+  #   source:
+  #     path: components/vault-config-operator
+  #   destination:
+  #     namespace: vault-config-operator
+  #   syncOptions:
+  #   - CreateNamespace=true
     
-  kube-ops-view:
-    enabled: false  # Cluster visualization - enable if needed
-    labels:
-      component: monitoring
-      phase: advanced
-    source:
-      path: components/kube-ops-view
-    destination:
-      namespace: kube-ops-view
-    syncOptions:
-    - CreateNamespace=true
+  # kube-ops-view:
+  #   enabled: false  # Cluster visualization - enable if needed
+  #   labels:
+  #     component: monitoring
+  #     phase: advanced
+  #   source:
+  #     path: components/kube-ops-view
+  #   destination:
+  #     namespace: kube-ops-view
+  #   syncOptions:
+  #   - CreateNamespace=true
 
 # Project Configuration
-projects:
-  cluster-config:
-    annotations:
-      notifications.argoproj.io/subscribe.on-sync-failed.slack: cluster-gitops
-      notifications.argoproj.io/subscribe.on-health-degraded.slack: cluster-gitops
-    description: "Core cluster infrastructure configuration for OCP-DR"
-    namespace: cluster-config
-    sourceRepos:
-    - "{{ .Values.default.app.source.repoURL }}"
-    destinations: |
-      - namespace: '*'
-        server: https://kubernetes.default.svc
-    extraFields: |
-      clusterResourceWhitelist:
-      - group: '*'
-        kind: '*'
+# projects:
+#   cluster-config:
+#     annotations:
+#       notifications.argoproj.io/subscribe.on-sync-failed.slack: cluster-gitops
+#       notifications.argoproj.io/subscribe.on-health-degraded.slack: cluster-gitops
+#     description: "Core cluster infrastructure configuration for OCP-DR"
+#     namespace: cluster-config
+#     sourceRepos:
+#     - "{{ .Values.default.app.source.repoURL }}"
+#     destinations: |
+#       - namespace: '*'
+#         server: https://kubernetes.default.svc
+#     extraFields: |
+#       clusterResourceWhitelist:
+#       - group: '*'
+#         kind: '*'
