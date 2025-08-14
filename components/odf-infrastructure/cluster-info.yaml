@@ -11,8 +11,18 @@ metadata:
     app.kubernetes.io/part-of: openshift-data-foundation
     app.kubernetes.io/component: storage-nodes
 data:
-  cluster-name: "ocp2-sz7qn"
+  cluster-name: "ocp2-r5dwn"
   cluster-domain: "kohlerco.com"
   cluster-type: "production"
   storage-platform: "vsphere"
   storage-network: "VLAN225"
+  # vSphere specifics used by the MachineSet
+  vsphere-server: "uswivc02.kohlerco.com"
+  vsphere-datacenter: "VxRail-Datacenter"
+  vsphere-datastore: "/VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-3424f606-f285-4436-9c7e-f1497032666a"
+  vsphere-folder: "/VxRail-Datacenter/vm/openshiftocp1/"
+  vsphere-resource-pool: "/VxRail-Datacenter/host/VXRail-LinuxProd/Resources"
+  rhcos-template: "ocp2-r5dwn-rhcos-default_region-default_zone"
+  user-data-secret: "worker-user-data"
+  machineset-name: "ocp2-r5dwn-odf-infra"
+  autoscaler-name: "ocp2-r5dwn-odf-infra-autoscaler"

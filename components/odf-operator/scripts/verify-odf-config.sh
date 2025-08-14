@@ -123,7 +123,7 @@ echo "-----------------------------"
 
 # Check operator subscription
 CLUSTER_OPERATOR_CHANNEL=$(oc get subscription odf-operator -n openshift-storage -o jsonpath='{.spec.channel}' 2>/dev/null || echo "")
-GITOPS_OPERATOR_CHANNEL="stable-4.16"
+GITOPS_OPERATOR_CHANNEL="stable-4.18"
 
 if [[ "$CLUSTER_OPERATOR_CHANNEL" == "$GITOPS_OPERATOR_CHANNEL" ]]; then
     echo "Operator Channel: $(get_status_color "MATCH") ($GITOPS_OPERATOR_CHANNEL)"
