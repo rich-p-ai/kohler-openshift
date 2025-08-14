@@ -53,7 +53,10 @@ metadata:
             - networkName: VLAN225
           numCPUs: 8
           numCoresPerSocket: 2
+          snapshot: ""
           template: ocp2-sz7qn-rhcos-default_region-default_zone
+          userDataSecret:
+            name: worker-user-data
           workspace:
             datacenter: VxRail-Datacenter
             datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-3424f606-f285-4436-9c7e-f1497032666a
