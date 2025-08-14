@@ -106,4 +106,4 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "200m"
-      backoffLimit: 3
+  backoffLimit: 3
