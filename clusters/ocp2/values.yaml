@@ -230,19 +230,19 @@ applications:
   #   - CreateNamespace=true
 
 # Project Configuration
-# projects:
-#   cluster-config:
-#     annotations:
-#       notifications.argoproj.io/subscribe.on-sync-failed.slack: cluster-gitops
-#       notifications.argoproj.io/subscribe.on-health-degraded.slack: cluster-gitops
-#     description: "Core cluster infrastructure configuration for OCP-DR"
-#     namespace: cluster-config
-#     sourceRepos:
-#     - "{{ .Values.default.app.source.repoURL }}"
-#     destinations: |
-#       - namespace: '*'
-#         server: https://kubernetes.default.svc
-#     extraFields: |
-#       clusterResourceWhitelist:
-#       - group: '*'
-#         kind: '*'
+projects:
+  cluster-config:
+    annotations:
+      notifications.argoproj.io/subscribe.on-sync-failed.slack: cluster-gitops
+      notifications.argoproj.io/subscribe.on-health-degraded.slack: cluster-gitops
+    description: "Core cluster infrastructure configuration for OCP-DR"
+    namespace: cluster-config
+    sourceRepos:
+    - "{{ .Values.default.app.source.repoURL }}"
+    destinations: |
+      - namespace: '*'
+        server: https://kubernetes.default.svc
+    extraFields: |
+      clusterResourceWhitelist:
+      - group: '*'
+        kind: '*'

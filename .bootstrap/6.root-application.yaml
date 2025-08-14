@@ -24,7 +24,7 @@ spec:
     targetRevision: HEAD
     helm:
       valueFiles:
-        - ../../../clusters/<cluster>/values.yaml
+        - ../../../clusters/ocp2/values.yaml
     path: .helm/charts/argocd-app-of-app
 
   # Destination cluster and namespace to deploy the application
