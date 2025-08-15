@@ -16,4 +16,3 @@ spec:
   name: group-sync-operator
   source: community-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: group-sync-operator.v0.0.36
