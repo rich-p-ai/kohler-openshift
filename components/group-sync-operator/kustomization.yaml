@@ -8,4 +8,5 @@ resources:
   - ./operator-group.yaml
   - ./subscription.yaml
   - ./azure-ad-credentials-secret.yaml
-  - ./azure-ad-groupsync.yaml
+  # Temporarily commented out to allow operator installation first
+  # - ./azure-ad-groupsync.yaml
