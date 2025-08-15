@@ -1,0 +1,33 @@
+---
+# VaultAuth for Kubernetes authentication to access Vault secrets
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: oauth-kubernetes-auth
+  namespace: openshift-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+    argocd.argoproj.io/sync-options: "SkipDryRunOnMissingResource=true"
+  labels:
+    app.kubernetes.io/name: oauth-vault-auth
+    app.kubernetes.io/part-of: oauth-configuration
+spec:
+  method: kubernetes
+  kubernetes:
+    role: oauth-role
+    serviceAccount:
+      name: oauth-vault-auth
+      namespace: openshift-config
+    mountPath: /v1/auth/kubernetes
+---
+# ServiceAccount for OAuth to authenticate with Vault
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: oauth-vault-auth
+  namespace: openshift-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+  labels:
+    app.kubernetes.io/name: oauth-vault-auth
+    app.kubernetes.io/part-of: oauth-configuration

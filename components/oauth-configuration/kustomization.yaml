@@ -6,5 +6,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 namespace: openshift-config
 resources:
-  - ./azure-ad-client-secret.yaml
+  - ./vault-auth.yaml
+  - ./vault-connection.yaml
+  - ./vault-static-secret.yaml
   - ./oauth-cluster-config.yaml
