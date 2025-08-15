@@ -10,7 +10,6 @@ metadata:
     # Optional: Add any specific annotations you need
     haproxy.router.openshift.io/timeout: 30s
 spec:
-  host: vault.apps.ocp2.kohlerco.com  # TODO: Update with your actual cluster domain
   to:
     kind: Service
     name: vault
