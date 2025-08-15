@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault
+  namespace: vault
+  labels:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/part-of: platform
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vault
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vault
+    spec:
+      serviceAccountName: vault
+      containers:
+      - name: vault
+        image: hashicorp/vault:1.15.2
+        args:
+        - server
+        - -config=/vault/config/vault.json
+        ports:
+        - containerPort: 8200
+          name: http
+        - containerPort: 8201
+          name: https-internal
+        env:
+        - name: VAULT_DISABLE_MLOCK
+          value: "true"
+        - name: VAULT_CACERT
+          value: /vault/userconfig/vault-ha-tls/vault.ca
+        volumeMounts:
+        - name: vault-config
+          mountPath: /vault/config
+        - name: vault-data
+          mountPath: /vault/file
+        - name: vault-logs
+          mountPath: /vault/logs
+        - name: vault-userconfig-vault-ha-tls
+          mountPath: /vault/userconfig/vault-ha-tls
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204
+            port: 8200
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204
+            port: 8200
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2Gi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          fsGroup: 10001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+      volumes:
+      - name: vault-config
+        configMap:
+          name: vault-config
+      - name: vault-data
+        persistentVolumeClaim:
+          claimName: vault-data
+      - name: vault-logs
+        persistentVolumeClaim:
+          claimName: vault-logs
+      - name: vault-userconfig-vault-ha-tls
+        secret:
+          secretName: vault-ha-tls
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - vault
+              topologyKey: kubernetes.io/hostname
