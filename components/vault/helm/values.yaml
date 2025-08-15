@@ -35,9 +35,9 @@ server:
       cpu: "1"
       memory: "2Gi"
 
-  # Spread across nodes (no topology zones guaranteed on vSphere)
+  # Spread across nodes
   affinity: {}
-  podAntiAffinity: "soft"  # chart supports soft/hard
+  podAntiAffinity: "soft"
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname
@@ -55,14 +55,12 @@ server:
     runAsGroup: 10001
     fsGroup: 10001
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false  # set true after validating plugins
+    readOnlyRootFilesystem: false
     capabilities:
       drop: ["ALL"]
 
   service:
     type: ClusterIP
-
-  # Probes: keep chart defaults
 
   # Metrics
   standalone: null
@@ -73,7 +71,7 @@ ui:
   enabled: true
 
 ingress:
-  enabled: false  # We use OpenShift Route instead; see templates/route.yaml
+  enabled: false  # We use OpenShift Route instead
 
 # Agent Injector
 injector:
@@ -86,26 +84,23 @@ injector:
       cpu: 500m
       memory: 256Mi
 
-# Monitoring (if you run Prometheus Operator)
+# Monitoring
 serverTelemetry:
   serviceMonitor:
-    enabled: false  # TODO: set true if you have monitoring stack
+    enabled: false
 
-# Overlay features (our templates)
+# Overlay features
 route:
   enabled: false
-  host: "vault.apps.example.com"  # TODO
+  host: "vault.apps.example.com"
   tls:
-    termination: edge  # edge|reencrypt
-    destinationCACertificate: ""  # only for reencrypt
+    termination: edge
 
 bootstrap:
   enabled: true
   keyShares: 5
   keyThreshold: 3
-  agePublicKey: "age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # TODO replace
-  acmPushURL: ""          # Optional: HTTPS endpoint on ACM hub to receive encrypted bundle
-  acmPushCABundle: ""     # Optional: PEM-encoded CA bundle if not public
-  acmPushAuthHeader: ""   # Optional: e.g., "Authorization: Bearer <token>"
-
-
+  agePublicKey: "age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  acmPushURL: ""
+  acmPushCABundle: ""
+  acmPushAuthHeader: ""
