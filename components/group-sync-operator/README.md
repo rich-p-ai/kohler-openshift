@@ -53,8 +53,9 @@ The Azure AD application needs the following Microsoft Graph permissions:
   - `User.Read.All` - Read all users
 
 ### **Application Details**
-- **Application Name**: `ocp-azuread-auth`
-- **Application ID**: `8bc87509-6d01-4739-b120-e84019342d66`
+- **Application Name**: `aro-auth`
+- **Application ID**: `667e7b9c-e03e-4967-a9fd-953fef9cbce6`
+- **Object ID**: `bd6342de-712e-4bc0-a954-9c97dfd5acf0`
 - **Tenant ID**: `5d2d3f03-286e-4643-8f5b-10565608e6`
 
 ## 👥 Group Synchronization

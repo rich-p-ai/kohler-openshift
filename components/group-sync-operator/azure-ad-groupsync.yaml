@@ -17,8 +17,8 @@ spec:
       credentialsSecret:
         name: azure-ad-credentials
         namespace: group-sync-operator
-      tenantId: "5d2d3f03-286e-4643-8f5b-10565608e5f6"
-      clientId: "8bc87509-6d01-4739-b120-e84019342d66"
+      tenantId: "5d2d3f03-286e-4643-8f5b-10565608e6"
+      clientId: "667e7b9c-e03e-4967-a9fd-953fef9cbce6"
       clientSecret:
         name: azure-ad-credentials
         key: clientSecret

@@ -25,7 +25,7 @@ echo "✅ group-sync-operator namespace exists"
 
 # Azure AD Application Details
 AZURE_TENANT_ID="5d2d3f03-286e-4643-8f5b-10565608e6"
-AZURE_CLIENT_ID="8bc87509-6d01-4739-b120-e84019342d66"
+AZURE_CLIENT_ID="667e7b9c-e03e-4967-a9fd-953fef9cbce6"
 
 echo ""
 echo "📋 Azure AD Application Details:"
