@@ -10,5 +10,5 @@ spec:
   channel: stable
   installPlanApproval: Automatic
   name: vault-secrets-operator
-  source: redhat-operators
+  source: certified-operators
   sourceNamespace: openshift-marketplace
