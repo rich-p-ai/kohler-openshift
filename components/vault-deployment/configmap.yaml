@@ -24,15 +24,5 @@ data:
       "disable_mlock": true,
       "disable_clustering": true,
       "api_addr": "http://vault-ui-vault-system.apps.ocp2.kohlerco.com",
-      "cluster_addr": "http://vault.vault-system.svc:8201",
-      "secrets": {
-        "kv": {
-          "path": "secret/",
-          "type": "kv-v2"
-        },
-        "kv": {
-          "path": "apps/",
-          "type": "kv-v2"
-        }
-      }
+      "cluster_addr": "http://vault.vault-system.svc:8201"
     }
