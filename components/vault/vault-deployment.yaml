@@ -64,8 +64,7 @@ spec:
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]
-      securityContext:
-        fsGroup: 1000810000
+
       volumes:
       - name: vault-config
         configMap:
