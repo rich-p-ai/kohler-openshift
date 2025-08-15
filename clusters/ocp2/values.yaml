@@ -207,51 +207,51 @@ applications:
   #   destination:
   #     namespace: open-cluster-management
       
-  vault-deployment:
-    enabled: true
-    labels:
-      component: security
-      phase: advanced
-    source:
-      path: components/vault-deployment
-    destination:
-      namespace: vault-system
-    syncOptions:
-    - CreateNamespace=true
+  # vault-deployment:
+  #   enabled: true
+  #   labels:
+  #     component: security
+  #     phase: advanced
+  #   source:
+  #     path: components/vault-deployment
+  #   destination:
+  #     namespace: vault-system
+  #   syncOptions:
+  #   - CreateNamespace=true
 
-  vault-rbac:
-    enabled: true
-    labels:
-      component: security
-      phase: advanced
-    source:
-      path: components/vault-rbac
-    syncOptions:
-    - CreateNamespace=true
+  # vault-rbac:
+  #   enabled: true
+  #   labels:
+  #     component: security
+  #     phase: advanced
+  #   source:
+  #     path: components/vault-rbac
+  #   syncOptions:
+  #   - CreateNamespace=true
     
-  vault-secrets-operator:
-    enabled: true
-    labels:
-      component: security
-      phase: advanced
-    source:
-      path: components/vault-secrets-operator
-    destination:
-      namespace: vault-secrets-system
-    syncOptions:
-    - CreateNamespace=true
+  # vault-secrets-operator:
+  #   enabled: true
+  #   labels:
+  #     component: security
+  #     phase: advanced
+  #   source:
+  #     path: components/vault-secrets-operator
+  #   destination:
+  #     namespace: vault-secrets-system
+  #   syncOptions:
+  #   - CreateNamespace=true
     
-  vault-configuration:
-    enabled: true
-    labels:
-      component: security
-      phase: advanced
-    source:
-      path: components/vault-configuration
-    destination:
-      namespace: vault-secrets-system
-    syncOptions:
-    - CreateNamespace=true
+  # vault-configuration:
+  #   enabled: true
+  #   labels:
+  #     component: security
+  #     phase: advanced
+  #   source:
+  #     path: components/vault-configuration
+  #   destination:
+  #     namespace: vault-secrets-system
+  #   syncOptions:
+  #   - CreateNamespace=true
     
   group-sync-operator:
     enabled: true
@@ -265,17 +265,17 @@ applications:
     syncOptions:
     - CreateNamespace=true
     
-    vault:
-      enabled: true
-      labels:
-        component: security
-        phase: platform
-      source:
-        path: platform/vault
-      destination:
-        namespace: vault
-      syncOptions:
-      - CreateNamespace=true
+  vault:
+    enabled: true
+    labels:
+      component: security
+      phase: platform
+    source:
+      path: components/vault
+    destination:
+      namespace: vault
+    syncOptions:
+    - CreateNamespace=true
   # kube-ops-view:
   #   enabled: false  # Cluster visualization - enable if needed
   #   labels:

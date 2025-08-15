@@ -16,8 +16,8 @@ spec:
     targetRevision: 0.28.0 # TODO: pin desired chart version
     helm:
       valueFiles:
-        - $values/platform/vault/helm/values.yaml
-        - $values/platform/vault/helm/values.openshift.yaml
+        - $values/components/vault/helm/values.yaml
+        - $values/components/vault/helm/values.openshift.yaml
   syncPolicy:
     automated:
       prune: true
@@ -37,6 +37,6 @@ spec:
         - /webhooks/0/clientConfig/caBundle
   info:
     - name: docs
-      value: "See platform/vault/README.md"
+      value: "See components/vault/README.md"
 
 
