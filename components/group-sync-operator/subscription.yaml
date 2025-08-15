@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/name: group-sync-operator
     app.kubernetes.io/part-of: group-sync-operator
 spec:
-  channel: default
+  channel: alpha
   installPlanApproval: Automatic
   name: group-sync-operator
   source: community-operators
