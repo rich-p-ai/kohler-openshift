@@ -12,6 +12,8 @@ resources:
   - vault-configmap.yaml
   - vault-rbac.yaml
   - vault-route.yaml
+  - vault-root-token-secret.yaml
+  - vault-config-job.yaml
 
 commonLabels:
   app.kubernetes.io/name: vault

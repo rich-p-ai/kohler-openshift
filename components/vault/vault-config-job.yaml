@@ -1,0 +1,125 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-config
+  namespace: vault
+  labels:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/part-of: platform
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      serviceAccountName: vault
+      containers:
+      - name: vault-config
+        image: hashicorp/vault:1.15.2
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          # Wait for Vault to be ready
+          echo "Waiting for Vault to be ready..."
+          until vault status -address=http://vault:8200; do
+            echo "Vault not ready, waiting..."
+            sleep 5
+          done
+          
+          # Check if Vault is already initialized
+          if vault status -address=http://vault:8200 | grep -q "Initialized.*true"; then
+            echo "Vault is already initialized"
+          else
+            echo "Vault needs to be initialized"
+            exit 1
+          fi
+          
+          # Check if Vault is unsealed
+          if vault status -address=http://vault:8200 | grep -q "Sealed.*false"; then
+            echo "Vault is unsealed"
+          else
+            echo "Vault is still sealed"
+            exit 1
+          fi
+          
+          # Login with root token
+          echo "Logging in to Vault..."
+          vault login -address=http://vault:8200 -method=token $VAULT_ROOT_TOKEN
+          
+          # Enable Kubernetes authentication
+          echo "Enabling Kubernetes authentication..."
+          if ! vault auth list -address=http://vault:8200 | grep -q "kubernetes/"; then
+            vault auth enable -address=http://vault:8200 kubernetes
+            echo "Kubernetes authentication enabled"
+          else
+            echo "Kubernetes authentication already enabled"
+          fi
+          
+          # Configure Kubernetes authentication
+          echo "Configuring Kubernetes authentication..."
+          vault write -address=http://vault:8200 auth/kubernetes/config \
+            kubernetes_host="https://kubernetes.default.svc" \
+            kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+            token_reviewer_jwt=@/var/run/secrets/kubernetes.io/serviceaccount/token
+          
+          # Create Kubernetes role for vault service account
+          echo "Creating Kubernetes role..."
+          vault write -address=http://vault:8200 auth/kubernetes/role/vault \
+            bound_service_account_names=vault \
+            bound_service_account_namespaces=vault \
+            policies=vault-policy \
+            ttl=1h
+          
+          # Enable KV v2 secrets engine
+          echo "Enabling KV v2 secrets engine..."
+          if ! vault secrets list -address=http://vault:8200 | grep -q "secret/"; then
+            vault secrets enable -address=http://vault:8200 -path=secret kv-v2
+            echo "KV v2 secrets engine enabled at secret/"
+          else
+            echo "KV v2 secrets engine already enabled"
+          fi
+          
+          # Enable KV v2 secrets engine for apps
+          echo "Enabling KV v2 secrets engine for apps..."
+          if ! vault secrets list -address=http://vault:8200 | grep -q "apps/"; then
+            vault secrets enable -address=http://vault:8200 -path=apps kv-v2
+            echo "KV v2 secrets engine enabled at apps/"
+          else
+            echo "KV v2 secrets engine already enabled"
+          fi
+          
+          # Create vault policy
+          echo "Creating vault policy..."
+          vault policy write -address=http://vault:8200 vault-policy - <<EOF
+          # Vault policy for vault service account
+          path "secret/*" {
+            capabilities = ["read", "list"]
+          }
+          path "apps/*" {
+            capabilities = ["read", "list"]
+          }
+          path "auth/kubernetes/login" {
+            capabilities = ["create", "read"]
+          }
+          EOF
+          
+          echo "Vault configuration completed successfully!"
+        env:
+        - name: VAULT_ADDR
+          value: "http://vault:8200"
+        - name: VAULT_ROOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: vault-root-token
+              key: token
+        volumeMounts:
+        - name: vault-token
+          mountPath: /root/.vault-token
+          subPath: token
+      volumes:
+      - name: vault-token
+        secret:
+          secretName: vault-root-token
+      restartPolicy: Never
+      backoffLimit: 3
