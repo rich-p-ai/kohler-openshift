@@ -1,0 +1,63 @@
+---
+# Group mapping configuration for Azure AD SSO
+# This maps Azure AD groups to OpenShift groups for role-based access control
+
+apiVersion: user.openshift.io/v1
+kind: Group
+metadata:
+  name: azure-openshift-admins
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+  labels:
+    app.kubernetes.io/name: azure-group-mapping
+    app.kubernetes.io/part-of: oauth-configuration
+    azure-ad-group-id: dff67b8f-e712-48af-b815-5d5162f0c598
+---
+apiVersion: user.openshift.io/v1
+kind: Group
+metadata:
+  name: azure-openshift-users
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+  labels:
+    app.kubernetes.io/name: azure-group-mapping
+    app.kubernetes.io/part-of: oauth-configuration
+    azure-ad-group-id: 0d636d19-3489-4af3-8eb3-efbbc8d677e0
+---
+# ClusterRoleBinding for Azure OpenShift Admins
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azure-openshift-admins-binding
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+  labels:
+    app.kubernetes.io/name: azure-group-mapping
+    app.kubernetes.io/part-of: oauth-configuration
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: azure-openshift-admins
+---
+# ClusterRoleBinding for Azure OpenShift Users
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azure-openshift-users-binding
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+  labels:
+    app.kubernetes.io/name: azure-group-mapping
+    app.kubernetes.io/part-of: oauth-configuration
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: basic-user
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: azure-openshift-users

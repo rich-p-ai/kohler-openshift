@@ -10,3 +10,4 @@ resources:
   - ./vault-connection.yaml
   - ./vault-static-secret.yaml
   - ./oauth-cluster-config.yaml
+  - ./group-mapping.yaml

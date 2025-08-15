@@ -15,7 +15,5 @@ spec:
   address: "http://vault.vault-system.svc.cluster.local:8200"
   tls:
     skipVerify: true  # For development - set to false in production
-  headers:
-    X-Vault-Namespace: ""
   hvs:
     authRef: oauth-kubernetes-auth

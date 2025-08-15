@@ -15,10 +15,9 @@ spec:
   method: kubernetes
   kubernetes:
     role: oauth-role
-    serviceAccount:
-      name: oauth-vault-auth
-      namespace: openshift-config
+    serviceAccount: oauth-vault-auth
     mountPath: /v1/auth/kubernetes
+  vaultConnectionRef: oauth-vault-connection
 ---
 # ServiceAccount for OAuth to authenticate with Vault
 apiVersion: v1
