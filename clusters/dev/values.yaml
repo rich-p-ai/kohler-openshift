@@ -36,18 +36,7 @@ default:
 # Critical Infrastructure Applications
 applications:
   # Phase 1: Core Infrastructure (Sync Wave 1-10)
-  gitops-operator:
-    enabled: true
-    labels:
-      component: infrastructure
-      phase: core
-    source:
-      path: components/gitops-operator
-    destination:
-      namespace: openshift-gitops-operator
-    syncOptions:
-    - CreateNamespace=true
-    
+   
   network-configuration:
     enabled: true
     labels:
@@ -56,15 +45,6 @@ applications:
     source:
       path: components/network-configuration
     
-  gitops-configuration:
-    enabled: true
-    labels:
-      component: infrastructure  
-      phase: core
-    source:
-      path: components/gitops-configuration
-    destination:
-      namespace: openshift-gitops
       
   image-registry-configuration:
     enabled: true

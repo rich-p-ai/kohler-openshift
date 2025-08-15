@@ -1,0 +1,11 @@
+apiVersion: v2
+name: vault-openshift-overlay
+type: application
+version: 0.1.0
+description: Overlay and add-ons for deploying HashiCorp Vault on OpenShift with GitOps.
+dependencies:
+  - name: vault
+    version: 0.28.0 # TODO: keep in sync with argocd-app.yaml
+    repository: https://helm.releases.hashicorp.com
+
+

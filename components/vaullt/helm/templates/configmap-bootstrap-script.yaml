@@ -1,0 +1,135 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-bootstrap-script
+data:
+  bootstrap.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    info(){ echo "[bootstrap] $*"; }
+    die(){ echo "[bootstrap][ERROR] $*" >&2; exit 1; }
+
+    : "${VAULT_ADDR:?VAULT_ADDR not set}"
+    KEYS_FILE="/workspace/init.json"
+    KEYS_FILE_ENC="/workspace/init.json.enc"
+    AGE_PUB="${AGE_PUBLIC_KEY:?AGE_PUBLIC_KEY not set}"
+    KEY_SHARES="${KEY_SHARES:-5}"
+    KEY_THRESHOLD="${KEY_THRESHOLD:-3}"
+
+    wait_for(){
+      local url="$1"
+      for i in {1..120}; do
+        if curl -sSf "${url}" > /dev/null; then return 0; fi
+        sleep 5
+      done
+      return 1
+    }
+
+    info "Waiting for Vault HTTP readiness..."
+    wait_for "${VAULT_ADDR}/v1/sys/health" || die "Vault not ready"
+
+    set +e
+    status_json=$(vault status -format=json 2>/dev/null)
+    rc=$?
+    set -e
+
+    if [ $rc -ne 0 ]; then
+      die "vault status failed"
+    fi
+
+    initialized=$(echo "$status_json" | jq -r '.initialized')
+    sealed=$(echo "$status_json" | jq -r '.sealed')
+
+    if [ "$initialized" != "true" ]; then
+      info "Initializing Vault (shares=${KEY_SHARES}, threshold=${KEY_THRESHOLD})..."
+      vault operator init -format=json -key-shares="${KEY_SHARES}" -key-threshold="${KEY_THRESHOLD}" > "${KEYS_FILE}"
+      info "Vault initialized; sealing/unseal material captured."
+
+      info "Encrypting bundle with SOPS (age)..."
+      # Write a one-off Secret manifest to stdout between markers for operator capture.
+      cat > "${KEYS_FILE_ENC}" <<'EOFJSON'
+$(cat ${KEYS_FILE})
+EOFJSON
+
+      # Produce SOPS-encrypted Secret manifest to STDOUT (not applied).
+      echo "-----BEGIN VAULT-BOOTSTRAP-SECRET-----"
+      cat <<EOF | sops --encrypt --age "${AGE_PUB}" /dev/stdin
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-bootstrap
+  namespace: vault
+type: Opaque
+stringData:
+  init.json: |
+$(sed 's/^/    /' "${KEYS_FILE_ENC}")
+EOF
+      echo "-----END VAULT-BOOTSTRAP-SECRET-----"
+
+      # Optional: push the encrypted blob to ACM hub if configured.
+      if [ -n "${ACM_PUSH_URL:-}" ]; then
+        info "Pushing encrypted bundle to ACM hub endpoint..."
+        hdr=()
+        if [ -n "${ACM_PUSH_AUTH_HEADER:-}" ]; then hdr=(-H "${ACM_PUSH_AUTH_HEADER}"); fi
+        if [ -n "${ACM_PUSH_CA_BUNDLE:-}" ]; then
+          echo "${ACM_PUSH_CA_BUNDLE}" > /workspace/hub-ca.crt
+          curl --fail --show-error --silent --data-binary @"${KEYS_FILE_ENC}" "${hdr[@]}" --cacert /workspace/hub-ca.crt "${ACM_PUSH_URL}"
+        else
+          curl --fail --show-error --silent --data-binary @"${KEYS_FILE_ENC}" "${hdr[@]}" "${ACM_PUSH_URL}"
+        fi
+        info "Encrypted bundle pushed to hub."
+      fi
+    else
+      info "Vault already initialized; skipping init."
+    fi
+
+    # Unseal if needed (use first 3 keys)
+    status_json=$(vault status -format=json)
+    sealed=$(echo "$status_json" | jq -r '.sealed')
+    if [ "$sealed" = "true" ]; then
+      info "Unsealing Vault with threshold keys..."
+      if [ ! -s "${KEYS_FILE}" ]; then
+        die "Unseal required but init.json not present. Supply keys via operator procedure."
+      fi
+      for i in 0 1 2; do
+        key=$(jq -r ".unseal_keys_b64[$i]" "${KEYS_FILE}")
+        vault operator unseal "${key}"
+      done
+      info "Unseal complete."
+    else
+      info "Vault already unsealed."
+    fi
+
+    # Configure Kubernetes auth (idempotent)
+    if ! vault auth list -format=json | jq -e '."kubernetes/".type=="kubernetes"' >/dev/null 2>&1; then
+      info "Enabling Kubernetes auth..."
+      vault auth enable kubernetes
+      # Discover in-cluster endpoints
+      KUBE_HOST="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}"
+      SA_JWT_PATH="/var/run/secrets/kubernetes.io/serviceaccount/token"
+      SA_CA_CERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+      vault write auth/kubernetes/config \
+        kubernetes_host="${KUBE_HOST}" \
+        kubernetes_ca_cert=@${SA_CA_CERT} \
+        token_reviewer_jwt="$(cat ${SA_JWT_PATH})"
+
+      # Demo policy & role
+      vault policy write demo - <<'EOP'
+path "secret/data/demo/*" {
+  capabilities = ["read"]
+}
+EOP
+      vault write auth/kubernetes/role/demo \
+        bound_service_account_names=app \
+        bound_service_account_namespaces=demo \
+        policies=demo \
+        ttl=1h
+      info "Kubernetes auth configured with demo role."
+    else
+      info "Kubernetes auth already enabled."
+    fi
+
+    info "Bootstrap completed."
+
+

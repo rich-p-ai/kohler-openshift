@@ -54,10 +54,14 @@ spec:
           
           echo "Configuring Vault..."
           
-          # Enable KV secrets engine if not already enabled
+          # Enable KV secrets engines if not already enabled
           if ! vault secrets list | grep -q "secret/"; then
-            echo "Enabling KV secrets engine..."
+            echo "Enabling KV secrets engine at secret/..."
             vault secrets enable -path=secret kv-v2
+          fi
+          if ! vault secrets list | grep -q "apps/"; then
+            echo "Enabling KV secrets engine at apps/..."
+            vault secrets enable -path=apps kv-v2
           fi
           
           # Enable Kubernetes auth method if not already enabled
@@ -76,13 +80,19 @@ spec:
           # Create policy for external secrets operator
           echo "Creating external-secrets policy..."
           vault policy write external-secrets - <<EOF
-          # Allow reading secrets from the kv-v2 secret engine
+          # Allow reading secrets from the kv-v2 secret engines
           path "secret/data/*" {
+            capabilities = ["read"]
+          }
+          path "apps/data/*" {
             capabilities = ["read"]
           }
           
           # Allow listing secrets
           path "secret/metadata/*" {
+            capabilities = ["list"]
+          }
+          path "apps/metadata/*" {
             capabilities = ["list"]
           }
           EOF

@@ -32,6 +32,12 @@ data:
       type = "kv-v2"
     }
 
+    # Additional KV secrets engine for application secrets
+    secrets "kv" {
+      path = "apps/"
+      type = "kv-v2"
+    }
+
     # API address for high availability
     api_addr = "https://vault.vault-system.svc.cluster.local:8200"
     cluster_addr = "https://vault.vault-system.svc.cluster.local:8201"

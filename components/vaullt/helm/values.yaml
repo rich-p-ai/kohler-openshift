@@ -1,0 +1,111 @@
+# Common, platform-agnostic defaults. OpenShift specifics are in values.openshift.yaml
+
+global:
+  imagePullSecrets: []  # TODO if needed
+
+# --- Vault server (official chart) ---
+server:
+  ha:
+    enabled: true
+    raft:
+      enabled: true
+  # OpenShift runs restricted SCC by default; disallow mlock
+  extraEnvironmentVars:
+    VAULT_DISABLE_MLOCK: "true"
+    VAULT_LOG_LEVEL: "info"
+
+  # Persistent storage
+  dataStorage:
+    enabled: true
+    size: 20Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""   # set in values.openshift.yaml
+  auditStorage:
+    enabled: true
+    size: 20Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""   # set in values.openshift.yaml
+
+  # Resources (tune)
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+
+  # Spread across nodes (no topology zones guaranteed on vSphere)
+  affinity: {}
+  podAntiAffinity: "soft"  # chart supports soft/hard
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: vault
+
+  updateStrategyType: OnDelete
+
+  # Security
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false  # set true after validating plugins
+    capabilities:
+      drop: ["ALL"]
+
+  service:
+    type: ClusterIP
+
+  # Probes: keep chart defaults
+
+  # Metrics
+  standalone: null
+  auditLogs:
+    enabled: true
+
+ui:
+  enabled: true
+
+ingress:
+  enabled: false  # We use OpenShift Route instead; see templates/route.yaml
+
+# Agent Injector
+injector:
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# Monitoring (if you run Prometheus Operator)
+serverTelemetry:
+  serviceMonitor:
+    enabled: false  # TODO: set true if you have monitoring stack
+
+# Overlay features (our templates)
+route:
+  enabled: false
+  host: "vault.apps.example.com"  # TODO
+  tls:
+    termination: edge  # edge|reencrypt
+    destinationCACertificate: ""  # only for reencrypt
+
+bootstrap:
+  enabled: true
+  keyShares: 5
+  keyThreshold: 3
+  agePublicKey: "age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # TODO replace
+  acmPushURL: ""          # Optional: HTTPS endpoint on ACM hub to receive encrypted bundle
+  acmPushCABundle: ""     # Optional: PEM-encoded CA bundle if not public
+  acmPushAuthHeader: ""   # Optional: e.g., "Authorization: Bearer <token>"
+
+

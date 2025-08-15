@@ -1,0 +1,191 @@
+---
+# ArgoCD Pre/Post Sync Hooks for ODF Deployment
+# These hooks can run scripts before or after ODF deployment
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: odf-deployment-hooks
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+data:
+  pre-deploy.sh: |
+    #!/bin/bash
+    # Pre-deployment hook for ODF
+    echo "=== ODF Pre-Deployment Hook ==="
+    echo "Date: $(date)"
+    
+    # Check if ODF operator is ready
+    if ! oc get subscription -n openshift-storage odf-operator >/dev/null 2>&1; then
+      echo "ODF operator not found, deploying..."
+      oc kustomize kohler-openshift/components/odf-operator | oc apply -f -
+    fi
+    
+    # Wait for operator to be ready
+    echo "Waiting for ODF operator to be ready..."
+    oc wait --for=condition=AtLatestDesiredRevision deployment/odf-operator-controller-manager -n openshift-storage --timeout=300s
+    
+    echo "Pre-deployment hook completed"
+    
+  post-deploy.sh: |
+    #!/bin/bash
+    # Post-deployment hook for ODF
+    echo "=== ODF Post-Deployment Hook ==="
+    echo "Date: $(date)"
+    
+    # Wait for storage cluster to be ready
+    echo "Waiting for storage cluster to be ready..."
+    oc wait --for=condition=Ready storagecluster/ocs-storagecluster -n openshift-storage --timeout=1800s
+    
+    # Verify storage classes
+    echo "Verifying storage classes..."
+    oc get storageclass | grep ocs
+    
+    # Test storage provisioning
+    echo "Testing storage provisioning..."
+    cat <<EOF | oc apply -f -
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: test-pvc-hook
+      namespace: default
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: ocs-storagecluster-ceph-rbd
+    EOF
+    
+    # Wait for PVC to be bound
+    oc wait --for=condition=Bound pvc/test-pvc-hook -n default --timeout=300s
+    
+    # Clean up test PVC
+    oc delete pvc test-pvc-hook -n default
+    
+    echo "Post-deployment hook completed"
+---
+# Pre-deployment Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: odf-pre-deploy-hook
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  template:
+    spec:
+      serviceAccountName: odf-deployment-sa
+      containers:
+      - name: pre-deploy
+        image: registry.redhat.io/openshift4/ose-cli:latest
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          #!/bin/bash
+          set -e
+          
+          echo "=== ODF Pre-Deployment Hook Started ==="
+          echo "Date: $(date)"
+          
+          # Check if ODF operator is ready
+          if ! oc get subscription -n openshift-storage odf-operator >/dev/null 2>&1; then
+            echo "ODF operator not found, deploying..."
+            oc kustomize kohler-openshift/components/odf-operator | oc apply -f -
+          fi
+          
+          # Wait for operator to be ready
+          echo "Waiting for ODF operator to be ready..."
+          oc wait --for=condition=AtLatestDesiredRevision deployment/odf-operator-controller-manager -n openshift-storage --timeout=300s
+          
+          echo "Pre-deployment hook completed successfully"
+          
+        env:
+        - name: KUBECONFIG
+          value: /var/run/secrets/kubernetes.io/serviceaccount/kubeconfig
+        - name: OC_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: odf-deployment-token
+              key: token
+      restartPolicy: Never
+  backoffLimit: 2
+---
+# Post-deployment Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: odf-post-deploy-hook
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "17"
+spec:
+  template:
+    spec:
+      serviceAccountName: odf-deployment-sa
+      containers:
+      - name: post-deploy
+        image: registry.redhat.io/openshift4/ose-cli:latest
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          #!/bin/bash
+          set -e
+          
+          echo "=== ODF Post-Deployment Hook Started ==="
+          echo "Date: $(date)"
+          
+          # Wait for storage cluster to be ready
+          echo "Waiting for storage cluster to be ready..."
+          oc wait --for=condition=Ready storagecluster/ocs-storagecluster -n openshift-storage --timeout=1800s
+          
+          # Verify storage classes
+          echo "Verifying storage classes..."
+          oc get storageclass | grep ocs
+          
+          # Test storage provisioning
+          echo "Testing storage provisioning..."
+          cat <<EOF | oc apply -f -
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: test-pvc-hook
+            namespace: default
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 1Gi
+            storageClassName: ocs-storagecluster-ceph-rbd
+          EOF
+          
+          # Wait for PVC to be bound
+          oc wait --for=condition=Bound pvc/test-pvc-hook -n default --timeout=300s
+          
+          # Clean up test PVC
+          oc delete pvc test-pvc-hook -n default
+          
+          echo "Post-deployment hook completed successfully"
+          
+        env:
+        - name: KUBECONFIG
+          value: /var/run/secrets/kubernetes.io/serviceaccount/kubeconfig
+        - name: OC_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: odf-deployment-token
+              key: token
+      restartPolicy: Never
+  backoffLimit: 2

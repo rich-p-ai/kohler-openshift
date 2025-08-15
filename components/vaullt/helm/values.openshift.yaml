@@ -1,0 +1,16 @@
+# OpenShift & vSphere CSI specifics
+
+server:
+  dataStorage:
+    storageClass: "ocs-storagecluster-ceph-rbd"  # ODF block storage for Raft
+  auditStorage:
+    storageClass: "ocs-storagecluster-ceph-rbd"  # ODF block storage for audit
+
+# OpenShift Route is optional, disabled by default. Enable and set host to expose UI/API.
+route:
+  enabled: false
+  host: "vault.apps.<cluster-domain>"  # TODO: set cluster domain
+  tls:
+    termination: edge
+
+

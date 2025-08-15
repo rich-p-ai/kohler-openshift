@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: platform
+spec:
+  project: default
+  destination:
+    namespace: vault
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://helm.releases.hashicorp.com
+    chart: vault
+    targetRevision: 0.28.0 # TODO: pin desired chart version
+    helm:
+      valueFiles:
+        - $values/platform/vault/helm/values.yaml
+        - $values/platform/vault/helm/values.openshift.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
+  info:
+    - name: docs
+      value: "See platform/vault/README.md"
+
+

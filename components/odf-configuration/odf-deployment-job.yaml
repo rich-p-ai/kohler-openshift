@@ -1,0 +1,309 @@
+---
+# ODF Deployment Job for ArgoCD
+# This Job will run the ODF deployment script when deployed by ArgoCD
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: odf-deployment-job
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "14"
+    argocd.argoproj.io/sync-options: CreateNamespace=true
+  labels:
+    app.kubernetes.io/name: odf-deployment
+    app.kubernetes.io/part-of: openshift-data-foundation
+spec:
+  template:
+    spec:
+      serviceAccountName: odf-deployment-sa
+      containers:
+      - name: odf-deployment
+        image: registry.redhat.io/openshift4/ose-cli:latest
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          #!/bin/bash
+          set -e
+          
+          echo "=== ODF Deployment Job Started ==="
+          echo "Date: $(date)"
+          echo "Cluster: $(oc config view --minify -o jsonpath='{.clusters[0].name}')"
+          echo
+          
+          # Wait for ODF operator to be ready
+          echo "Waiting for ODF operator to be ready..."
+          oc wait --for=condition=AtLatestDesiredRevision deployment/odf-operator-controller-manager -n openshift-storage --timeout=300s
+          
+          # Wait for infrastructure nodes to be ready
+          echo "Waiting for infrastructure nodes to be ready..."
+          oc wait --for=condition=Ready nodes -l node-role.kubernetes.io/infra= --timeout=600s
+          
+          # Deploy ODF storage cluster
+          echo "Deploying ODF storage cluster..."
+          oc apply -f /tmp/storage-cluster.yaml
+          
+          # Wait for storage cluster to be ready
+          echo "Waiting for storage cluster to be ready..."
+          oc wait --for=condition=Ready storagecluster/ocs-storagecluster -n openshift-storage --timeout=1800s
+          
+          # Deploy storage classes
+          echo "Deploying storage classes..."
+          oc apply -f /tmp/storage-classes.yaml
+          
+          echo "=== ODF Deployment Job Completed Successfully ==="
+          echo "Date: $(date)"
+          
+        env:
+        - name: KUBECONFIG
+          value: /var/run/secrets/kubernetes.io/serviceaccount/kubeconfig
+        - name: OC_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: odf-deployment-token
+              key: token
+        volumeMounts:
+        - name: storage-config
+          mountPath: /tmp
+      volumes:
+      - name: storage-config
+        configMap:
+          name: odf-storage-config
+      restartPolicy: Never
+  backoffLimit: 3
+---
+# Service Account for the deployment job
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: odf-deployment-sa
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+---
+# RBAC for the service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: odf-deployment-role
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "pods", "services", "endpoints", "persistentvolumeclaims", "events", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "statefulsets", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["ocs.openshift.io"]
+  resources: ["storageclusters"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["ceph.rook.io"]
+  resources: ["cephclusters", "cephblockpools", "cephfilesystems", "cephobjectstores"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: odf-deployment-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: odf-deployment-role
+subjects:
+- kind: ServiceAccount
+  name: odf-deployment-sa
+  namespace: openshift-storage
+---
+# ConfigMap containing the storage configuration files
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: odf-storage-config
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+data:
+  storage-cluster.yaml: |
+    apiVersion: ocs.openshift.io/v1
+    kind: StorageCluster
+    metadata:
+      name: ocs-storagecluster
+      namespace: openshift-storage
+    spec:
+      nodeTopologies:
+        nodes:
+          nodeSelector:
+            matchLabels:
+              node-role.kubernetes.io/infra: ""
+              cluster.ocs.openshift.io/openshift-storage: ""
+          tolerations:
+          - key: node-role.kubernetes.io/infra
+            operator: Exists
+            effect: NoSchedule
+          - key: node.ocs.openshift.io/storage
+            operator: Exists
+            effect: NoSchedule
+      
+      storageDeviceSets:
+      - name: ocs-deviceset
+        count: 3
+        replica: 3
+        dataPVCTemplate:
+          spec:
+            storageClassName: thin-csi
+            accessModes:
+            - ReadWriteOnce
+            resources:
+              requests:
+                storage: 2Ti
+            volumeMode: Block
+        placement:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: node-role.kubernetes.io/infra
+                  operator: Exists
+                - key: cluster.ocs.openshift.io/openshift-storage
+                  operator: Exists
+          tolerations:
+          - key: node.ocs.openshift.io/storage
+            operator: Exists
+            effect: NoSchedule
+        portable: false
+      
+      managedResources:
+        cephFilesystems:
+          ocs-storagecluster-cephfilesystem:
+            spec:
+              metadataPool:
+                replicated:
+                  size: 3
+              dataPools:
+              - name: ocs-storagecluster-cephfilesystem-data0
+                replicated:
+                  size: 3
+              preserveFilesystemOnDelete: false
+              metadataServer:
+                activeCount: 2
+                activeStandby: true
+        cephObjectStores:
+          ocs-storagecluster-cephobjectstore:
+            spec:
+              metadataPool:
+                replicated:
+                  size: 3
+              dataPool:
+                replicated:
+                  size: 3
+              gateway:
+                type: s3
+                sslCertificateRef:
+                port: 80
+                securePort: 443
+      
+      multiCloudGateway:
+        reconcileStrategy: manage
+        dbStorageClassName: thin-csi
+        dbResources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+      
+      encryption:
+        keyRotation:
+          schedule: '@weekly'
+        kms:
+          enable: false
+      
+      network:
+        connections:
+          encryption:
+            enabled: true
+          compression:
+            mode: aggressive
+        multiClusterService: {}
+      
+      resources:
+        mds:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+        rgw:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+        noobaa-core:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+      
+      arbiter: {}
+      externalStorage: {}
+      manageNodes: true
+      mirroring: {}
+      resourceProfile: lean
+      
+  storage-classes.yaml: |
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+      name: ocs-storagecluster-ceph-rbd
+      annotations:
+        description: "Ceph RBD storage class for block storage"
+        storageclass.kubernetes.io/is-default-class: "true"
+    provisioner: openshift-storage.rbd.csi.ceph.com
+    parameters:
+      clusterID: openshift-storage
+      pool: ocs-storagecluster-cephblockpool
+      imageFormat: "2"
+      imageFeatures: layering
+    reclaimPolicy: Delete
+    allowVolumeExpansion: true
+    volumeBindingMode: Immediate
+    ---
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+      name: ocs-storagecluster-cephfs
+      annotations:
+        description: "CephFS storage class for file storage"
+    provisioner: openshift-storage.cephfs.csi.ceph.com
+    parameters:
+      clusterID: openshift-storage
+      fsName: ocs-storagecluster-cephfilesystem
+      pool: ocs-storagecluster-cephfilesystem-metadata
+    reclaimPolicy: Delete
+    allowVolumeExpansion: true
+    volumeBindingMode: Immediate
+    ---
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+      name: slow
+      annotations:
+        description: "Slow Ceph RBD storage class for less critical workloads"
+    provisioner: openshift-storage.rbd.csi.ceph.com
+    parameters:
+      clusterID: openshift-storage
+      pool: ocs-storagecluster-cephblockpool
+      imageFormat: "2"
+      imageFeatures: layering
+    reclaimPolicy: Delete
+    allowVolumeExpansion: true
+    volumeBindingMode: Immediate

@@ -1,0 +1,49 @@
+# Enable var substitutions into nested fields for MachineSet providerSpec
+nameReference:
+- kind: ConfigMap
+  version: v1
+  fieldSpecs:
+  - kind: MachineSet
+    path: metadata/name
+
+varReference:
+- kind: MachineSet
+  path: metadata/name
+- kind: MachineSet
+  path: metadata/labels/machine.openshift.io~1cluster-api-machineset
+- kind: MachineSet
+  path: spec/selector/matchLabels/machine.openshift.io~1cluster-api-machineset
+- kind: MachineSet
+  path: spec/template/metadata/labels/machine.openshift.io~1cluster-api-machineset
+- kind: MachineSet
+  path: spec/template/spec/providerSpec/value/network/devices/networkName
+- kind: MachineSet
+  path: spec/template/spec/providerSpec/value/template
+- kind: MachineSet
+  path: spec/template/spec/providerSpec/value/userDataSecret/name
+- kind: MachineSet
+  path: spec/template/spec/providerSpec/value/workspace/datacenter
+- kind: MachineSet
+  path: spec/template/spec/providerSpec/value/workspace/datastore
+- kind: MachineSet
+  path: spec/template/spec/providerSpec/value/workspace/folder
+- kind: MachineSet
+  path: spec/template/spec/providerSpec/value/workspace/resourcePool
+- kind: MachineSet
+  path: spec/template/spec/providerSpec/value/workspace/server
+
+# cluster label substitutions
+- kind: MachineSet
+  path: metadata/labels/machine.openshift.io~1cluster-api-cluster
+- kind: MachineSet
+  path: spec/selector/matchLabels/machine.openshift.io~1cluster-api-cluster
+- kind: MachineSet
+  path: spec/template/metadata/labels/machine.openshift.io~1cluster-api-cluster
+
+- kind: MachineAutoscaler
+  path: metadata/name
+- kind: MachineAutoscaler
+  path: spec/scaleTargetRef/name
+- kind: MachineAutoscaler
+  path: metadata/labels/machine.openshift.io~1cluster-api-cluster
+

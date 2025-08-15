@@ -1,0 +1,8 @@
+creation_rules:
+  - path_regex: secrets\.enc\.yaml$
+    age: ["age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"] # TODO replace with your age pub key(s)
+    encrypted_regex: '^(data|stringData)$'
+  - path_regex: .*secret.*\.ya?ml$
+    age: ["age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"] # optional catch-all
+
+

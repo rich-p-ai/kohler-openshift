@@ -265,6 +265,17 @@ applications:
     syncOptions:
     - CreateNamespace=true
     
+    vault:
+      enabled: true
+      labels:
+        component: security
+        phase: platform
+      source:
+        path: platform/vault
+      destination:
+        namespace: vault
+      syncOptions:
+      - CreateNamespace=true
   # kube-ops-view:
   #   enabled: false  # Cluster visualization - enable if needed
   #   labels:

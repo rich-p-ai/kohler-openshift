@@ -1,0 +1,24 @@
+{{- if .Values.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: vault
+  labels:
+    app.kubernetes.io/name: vault
+spec:
+  host: {{ .Values.route.host | quote }}
+  to:
+    kind: Service
+    name: vault
+    weight: 100
+  port:
+    targetPort: 8200
+  tls:
+    termination: {{ .Values.route.tls.termination | quote }}
+    {{- if eq .Values.route.tls.termination "reencrypt" }}
+    destinationCACertificate: |-
+{{ .Values.route.tls.destinationCACertificate | indent 6 }}
+    {{- end }}
+{{- end }}
+
+

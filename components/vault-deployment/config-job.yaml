@@ -66,6 +66,12 @@ spec:
           path "secret/metadata/*" {
             capabilities = ["read"]
           }
+          path "apps/data/*" {
+            capabilities = ["read"]
+          }
+          path "apps/metadata/*" {
+            capabilities = ["read"]
+          }
           path "auth/kubernetes/login" {
             capabilities = ["create", "read"]
           }
@@ -79,10 +85,13 @@ spec:
             policies=vault-secrets-operator \
             ttl=1h
           
-          # Enable KV v2 secrets engine
-          echo "Enabling KV v2 secrets engine..."
+          # Enable KV v2 secrets engines
+          echo "Ensuring KV v2 secrets engines..."
           if ! vault secrets list | grep -q "secret/"; then
             vault secrets enable -path=secret kv-v2
+          fi
+          if ! vault secrets list | grep -q "apps/"; then
+            vault secrets enable -path=apps kv-v2
           fi
           
           # Create example secret

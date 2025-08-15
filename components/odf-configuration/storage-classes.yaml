@@ -1,0 +1,54 @@
+---
+# ODF Storage Classes Configuration
+# These storage classes will be created after ODF storage cluster is deployed
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ocs-storagecluster-ceph-rbd
+  annotations:
+    description: "Ceph RBD storage class for block storage"
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: openshift-storage.rbd.csi.ceph.com
+parameters:
+  clusterID: openshift-storage
+  pool: ocs-storagecluster-cephblockpool
+  imageFormat: "2"
+  imageFeatures: layering
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ocs-storagecluster-cephfs
+  annotations:
+    description: "CephFS storage class for file storage"
+provisioner: openshift-storage.cephfs.csi.ceph.com
+parameters:
+  clusterID: openshift-storage
+  fsName: ocs-storagecluster-cephfilesystem
+  pool: ocs-storagecluster-cephfilesystem-metadata
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: slow
+  annotations:
+    description: "Slow Ceph RBD storage class for less critical workloads"
+provisioner: openshift-storage.rbd.csi.ceph.com
+parameters:
+  clusterID: openshift-storage
+  pool: ocs-storagecluster-cephblockpool
+  imageFormat: "2"
+  imageFeatures: layering
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+---
+# Note: ocs-storagecluster-ceph-rgw and openshift-storage.noobaa.io are created automatically by ODF
+# thin-csi is created by vSphere CSI driver

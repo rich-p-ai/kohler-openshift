@@ -1,0 +1,47 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vault-deny-all
+  namespace: vault
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vault
+  policyTypes: ["Ingress","Egress"]
+  ingress: []
+  egress:
+    - to:
+        - namespaceSelector: {}    # allow egress to kube DNS/metadata if required
+      ports:
+        - protocol: UDP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vault-allow-namespaces
+  namespace: vault
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vault
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              allow-vault-access: "true"
+        - namespaceSelector:
+            matchLabels:
+              openshift.io/run-level: "0"   # openshift-infra components if needed
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-gitops
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: vault
+      ports:
+        - protocol: TCP
+          port: 8200
+
+
