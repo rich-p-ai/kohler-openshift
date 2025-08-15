@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: vault
   namespace: vault
@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/name: vault
     app.kubernetes.io/part-of: platform
 spec:
+  serviceName: vault
   replicas: 3
   selector:
     matchLabels:
@@ -69,12 +70,6 @@ spec:
       - name: vault-config
         configMap:
           name: vault-config
-      - name: vault-data
-        persistentVolumeClaim:
-          claimName: vault-data
-      - name: vault-logs
-        persistentVolumeClaim:
-          claimName: vault-logs
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -87,3 +82,26 @@ spec:
                   values:
                   - vault
               topologyKey: kubernetes.io/hostname
+  volumeClaimTemplates:
+  - metadata:
+      name: vault-data
+      labels:
+        app.kubernetes.io/name: vault
+        app.kubernetes.io/part-of: platform
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: ocs-storagecluster-ceph-rbd
+  - metadata:
+      name: vault-logs
+      labels:
+        app.kubernetes.io/name: vault
+        app.kubernetes.io/part-of: platform
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: ocs-storagecluster-ceph-rbd
