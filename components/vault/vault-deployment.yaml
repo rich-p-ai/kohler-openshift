@@ -31,8 +31,6 @@ spec:
         env:
         - name: VAULT_DISABLE_MLOCK
           value: "true"
-        - name: VAULT_CACERT
-          value: /vault/userconfig/vault-ha-tls/vault.ca
         volumeMounts:
         - name: vault-config
           mountPath: /vault/config
@@ -40,9 +38,6 @@ spec:
           mountPath: /vault/file
         - name: vault-logs
           mountPath: /vault/logs
-        - name: vault-userconfig-vault-ha-tls
-          mountPath: /vault/userconfig/vault-ha-tls
-          readOnly: true
         livenessProbe:
           httpGet:
             path: /v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204
@@ -81,9 +76,6 @@ spec:
       - name: vault-logs
         persistentVolumeClaim:
           claimName: vault-logs
-      - name: vault-userconfig-vault-ha-tls
-        secret:
-          secretName: vault-ha-tls
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
