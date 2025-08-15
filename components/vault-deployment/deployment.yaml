@@ -28,22 +28,7 @@ spec:
         runAsUser: 1000780000
         runAsGroup: 1000780000
         fsGroup: 1000780000
-      initContainers:
-      - name: vault-init
-        image: busybox:1.35
-        command: ["/bin/sh"]
-        args:
-        - -c
-        - |
-          mkdir -p /vault/logs
-          chown -R 1000780000:1000780000 /vault/logs
-          chmod -R 755 /vault/logs
-        volumeMounts:
-        - name: vault-logs
-          mountPath: /vault/logs
-        securityContext:
-          runAsUser: 1000780000
-          runAsGroup: 1000780000
+
       containers:
       - name: vault
         image: hashicorp/vault:1.15.2
