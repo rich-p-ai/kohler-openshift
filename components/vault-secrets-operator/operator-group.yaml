@@ -7,5 +7,4 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  targetNamespaces:
-  - vault-secrets-system
+  targetNamespaces: []  # Empty array allows AllNamespaces install mode
