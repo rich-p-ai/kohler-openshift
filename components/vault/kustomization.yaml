@@ -13,6 +13,7 @@ resources:
   - vault-rbac.yaml
   - vault-route.yaml
   - vault-root-token-secret.yaml
+  - vault-azure-config-secret.yaml
   - vault-config-job.yaml
 
 commonLabels:

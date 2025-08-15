@@ -25,19 +25,15 @@ spec:
             sleep 5
           done
           
-          # Check if Vault is already initialized
-          if vault status -address=http://vault:8200 | grep -q "Initialized.*true"; then
-            echo "Vault is already initialized"
-          else
-            echo "Vault needs to be initialized"
-            exit 1
-          fi
+          # Check if Vault is already initialized and unsealed
+          VAULT_STATUS=$(vault status -address=http://vault:8200)
+          echo "Vault status:"
+          echo "$VAULT_STATUS"
           
-          # Check if Vault is unsealed
-          if vault status -address=http://vault:8200 | grep -q "Sealed.*false"; then
-            echo "Vault is unsealed"
+          if echo "$VAULT_STATUS" | grep -q "Initialized.*true" && echo "$VAULT_STATUS" | grep -q "Sealed.*false"; then
+            echo "Vault is initialized and unsealed - proceeding with configuration"
           else
-            echo "Vault is still sealed"
+            echo "Vault is not ready - needs to be initialized or unsealed"
             exit 1
           fi
           
@@ -87,6 +83,44 @@ spec:
             echo "KV v2 secrets engine already enabled"
           fi
           
+          # Enable Azure AD authentication
+          echo "Enabling Azure AD authentication..."
+          if ! vault auth list -address=http://vault:8200 | grep -q "azure/"; then
+            vault auth enable -address=http://vault:8200 azure
+            echo "Azure AD authentication enabled"
+          else
+            echo "Azure AD authentication already enabled"
+          fi
+          
+          # Configure Azure AD authentication
+          echo "Configuring Azure AD authentication..."
+          vault write -address=http://vault:8200 auth/azure/config \
+            tenant_id="$AZURE_TENANT_ID" \
+            resource="https://management.azure.com/"
+          
+          # Create Azure AD role for users
+          echo "Creating Azure AD role for users..."
+          vault write -address=http://vault:8200 auth/azure/role/azure-users \
+            policies="azure-user-policy" \
+            bound_service_principal_ids="$AZURE_SP_ID" \
+            ttl=8h \
+            max_ttl=24h
+          
+          # Create Azure AD user policy
+          echo "Creating Azure AD user policy..."
+          vault policy write -address=http://vault:8200 azure-user-policy - <<EOF
+          # Policy for Azure AD authenticated users
+          path "secret/*" {
+            capabilities = ["read", "list"]
+          }
+          path "apps/*" {
+            capabilities = ["read", "list"]
+          }
+          path "auth/azure/login" {
+            capabilities = ["create", "read"]
+          }
+          EOF
+          
           # Create vault policy
           echo "Creating vault policy..."
           vault policy write -address=http://vault:8200 vault-policy - <<EOF
@@ -100,6 +134,9 @@ spec:
           path "auth/kubernetes/login" {
             capabilities = ["create", "read"]
           }
+          path "auth/azure/login" {
+            capabilities = ["create", "read"]
+          }
           EOF
           
           echo "Vault configuration completed successfully!"
@@ -111,6 +148,16 @@ spec:
             secretKeyRef:
               name: vault-root-token
               key: token
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: vault-azure-config
+              key: tenant-id
+        - name: AZURE_SP_ID
+          valueFrom:
+            secretKeyRef:
+              name: vault-azure-config
+              key: service-principal-id
         volumeMounts:
         - name: vault-token
           mountPath: /root/.vault-token
