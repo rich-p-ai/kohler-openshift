@@ -253,6 +253,18 @@ applications:
     syncOptions:
     - CreateNamespace=true
     
+  group-sync-operator:
+    enabled: true
+    labels:
+      component: authentication
+      phase: advanced
+    source:
+      path: components/group-sync-operator
+    destination:
+      namespace: group-sync-operator
+    syncOptions:
+    - CreateNamespace=true
+    
   # kube-ops-view:
   #   enabled: false  # Cluster visualization - enable if needed
   #   labels:

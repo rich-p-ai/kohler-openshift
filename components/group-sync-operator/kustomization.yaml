@@ -1,0 +1,14 @@
+---
+# Kustomization for Group Sync Operator
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+namespace: group-sync-operator
+resources:
+  - ./namespace.yaml
+  - ./operator-group.yaml
+  - ./subscription.yaml
+  - ./azure-ad-credentials-secret.yaml
+  - ./azure-ad-groupsync.yaml

@@ -1,0 +1,15 @@
+---
+# OperatorGroup for Group Sync Operator
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: group-sync-operator
+  namespace: group-sync-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  labels:
+    app.kubernetes.io/name: group-sync-operator
+    app.kubernetes.io/part-of: group-sync-operator
+spec:
+  targetNamespaces:
+  - group-sync-operator

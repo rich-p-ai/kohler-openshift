@@ -1,0 +1,28 @@
+---
+# GroupSync configuration for Azure AD groups
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: GroupSync
+metadata:
+  name: azure-ad-groupsync
+  namespace: group-sync-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+  labels:
+    app.kubernetes.io/name: azure-ad-groupsync
+    app.kubernetes.io/part-of: group-sync-operator
+spec:
+  providers:
+  - name: azure-ad
+    azure:
+      credentialsSecret:
+        name: azure-ad-credentials
+        namespace: group-sync-operator
+      tenantId: "5d2d3f03-286e-4643-8f5b-10565608e5f6"
+      clientId: "8bc87509-6d01-4739-b120-e84019342d66"
+      clientSecret:
+        name: azure-ad-credentials
+        key: clientSecret
+      groupFilter: "displayName -like 'Azure_OpenShift_*'"
+      userFilter: "accountEnabled eq true"
+  schedule: "*/30 * * * *"  # Sync every 30 minutes
+  prune: true  # Remove groups that no longer exist in Azure AD

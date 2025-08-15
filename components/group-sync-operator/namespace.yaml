@@ -1,0 +1,11 @@
+---
+# Namespace for Group Sync Operator
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: group-sync-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app.kubernetes.io/name: group-sync-operator
+    app.kubernetes.io/part-of: group-sync-operator
