@@ -2,12 +2,12 @@
 apiVersion: autoscaling.openshift.io/v1beta1
 kind: MachineAutoscaler
 metadata:
-  name: ocp2-mbh44-odf-infra-autoscaler
+  name: $(AUTOSCALER_NAME)
   namespace: openshift-machine-api
   annotations:
     argocd.argoproj.io/sync-wave: "4"
   labels:
-    machine.openshift.io/cluster-api-cluster: ocp2-mbh44
+    machine.openshift.io/cluster-api-cluster: $(CLUSTER_NAME)
     machine.openshift.io/machine-type: infra
     app.kubernetes.io/name: odf-infrastructure
     app.kubernetes.io/part-of: openshift-data-foundation
@@ -18,4 +18,4 @@ spec:
   scaleTargetRef:
     apiVersion: machine.openshift.io/v1beta1
     kind: MachineSet
-    name: ocp2-mbh44-odf-infra
+    name: $(MACHINESET_NAME)

@@ -2,13 +2,13 @@
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
-  name: ocp2-mbh44-odf-infra
+  name: $(MACHINESET_NAME)
   namespace: openshift-machine-api
   annotations:
     argocd.argoproj.io/sync-wave: "4"
   labels:
-    machine.openshift.io/cluster-api-cluster: ocp2-mbh44
-    machine.openshift.io/cluster-api-machineset: ocp2-mbh44-odf-infra
+    machine.openshift.io/cluster-api-cluster: $(CLUSTER_NAME)
+    machine.openshift.io/cluster-api-machineset: $(MACHINESET_NAME)
     machine.openshift.io/machine-type: infra
     machine.openshift.io/machine-role: infra
     app.kubernetes.io/name: odf-infrastructure
