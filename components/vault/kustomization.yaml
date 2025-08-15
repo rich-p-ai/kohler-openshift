@@ -15,6 +15,12 @@ resources:
   - vault-root-token-secret.yaml
   - vault-azure-config-secret.yaml
   - vault-config-job.yaml
+  # Simple Vault deployment for Azure AD testing
+  - vault-simple-deployment.yaml
+  - vault-simple-pvcs.yaml
+  - vault-simple-service.yaml
+  - vault-simple-route.yaml
+  - vault-simple-config-job.yaml
 
 commonLabels:
   app.kubernetes.io/name: vault

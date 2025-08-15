@@ -1,0 +1,20 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: vault-simple
+  namespace: vault
+  labels:
+    app.kubernetes.io/name: vault-simple
+    app.kubernetes.io/part-of: platform
+  annotations:
+    haproxy.router.openshift.io/timeout: 30s
+spec:
+  to:
+    kind: Service
+    name: vault-simple
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
