@@ -20,9 +20,12 @@ spec:
       containers:
       - name: vault
         image: hashicorp/vault:1.15.2
+        command: ["/bin/sh"]
         args:
-        - server
-        - -config=/vault/config/vault.json
+        - -c
+        - |
+          # Skip any chown operations and start Vault directly
+          exec vault server -config=/vault/config/vault.json
         ports:
         - containerPort: 8200
           name: http
