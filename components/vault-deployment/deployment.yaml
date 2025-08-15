@@ -31,15 +31,18 @@ spec:
 
       containers:
       - name: vault
-        image: registry.connect.redhat.com/hashicorp/vault:1.15.2
+        image: hashicorp/vault:1.15.2
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+        command: ["/bin/sh"]
         args:
-        - "server"
-        - "-config=/vault/config/vault.json"
+        - -c
+        - |
+          # Skip ownership changes and start Vault directly
+          exec vault server -config=/vault/config/vault.json
         ports:
         - containerPort: 8200
           name: http
