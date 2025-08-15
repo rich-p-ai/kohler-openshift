@@ -22,6 +22,7 @@ data:
       },
       "ui": true,
       "disable_mlock": true,
+      "disable_clustering": true,
       "api_addr": "http://vault-ui-vault-system.apps.ocp2.kohlerco.com",
       "cluster_addr": "http://vault.vault-system.svc:8201"
     }
