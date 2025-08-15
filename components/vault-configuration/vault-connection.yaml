@@ -1,0 +1,21 @@
+---
+# Vault connection configuration
+# This will be deployed after the Vault Secrets Operator is fully installed
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: vault-main
+  namespace: vault-secrets-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  labels:
+    app.kubernetes.io/name: vault-connection
+    app.kubernetes.io/part-of: vault-secrets-operator
+spec:
+  address: "http://vault.vault-system.svc.cluster.local:8200"
+  tls:
+    skipVerify: true  # For development - set to false in production
+  headers:
+    X-Vault-Namespace: ""
+  hvs:
+    authRef: vault-main

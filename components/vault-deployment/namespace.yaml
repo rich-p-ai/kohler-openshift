@@ -4,7 +4,7 @@ kind: Namespace
 metadata:
   name: vault-system
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "15"
   labels:
     name: vault-system
     app.kubernetes.io/name: vault
