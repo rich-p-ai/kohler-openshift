@@ -66,10 +66,11 @@ spec:
           runAsNonRoot: true
           runAsUser: 10001
           runAsGroup: 10001
-          fsGroup: 10001
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]
+      securityContext:
+        fsGroup: 10001
       volumes:
       - name: vault-config
         configMap:
