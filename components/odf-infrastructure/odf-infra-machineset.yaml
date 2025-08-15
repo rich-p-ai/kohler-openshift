@@ -2,13 +2,13 @@
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
-  name: ocp2-sz7qn-odf-infra
+  name: $(MACHINESET_NAME)
   namespace: openshift-machine-api
   annotations:
     argocd.argoproj.io/sync-wave: "4"
   labels:
-    machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
-    machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
+    machine.openshift.io/cluster-api-cluster: $(CLUSTER_NAME)
+    machine.openshift.io/cluster-api-machineset: $(MACHINESET_NAME)
     machine.openshift.io/machine-type: infra
     machine.openshift.io/machine-role: infra
     app.kubernetes.io/name: odf-infrastructure
@@ -18,15 +18,15 @@ spec:
   replicas: 3
   selector:
     matchLabels:
-      machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
-      machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
+      machine.openshift.io/cluster-api-cluster: $(CLUSTER_NAME)
+      machine.openshift.io/cluster-api-machineset: $(MACHINESET_NAME)
   template:
     metadata:
       labels:
-        machine.openshift.io/cluster-api-cluster: ocp2-sz7qn
+        machine.openshift.io/cluster-api-cluster: $(CLUSTER_NAME)
         machine.openshift.io/cluster-api-machine-role: infra
         machine.openshift.io/cluster-api-machine-type: infra
-        machine.openshift.io/cluster-api-machineset: ocp2-sz7qn-odf-infra
+        machine.openshift.io/cluster-api-machineset: $(MACHINESET_NAME)
         # ODF Storage Labels
         cluster.ocs.openshift.io/openshift-storage: ""
         node-role.kubernetes.io/infra: ""
@@ -45,21 +45,23 @@ spec:
           credentialsSecret:
             name: vsphere-cloud-credentials
           diskGiB: 250
+          disk1GiB: 2048
+          disk2GiB: 1024
           memoryMiB: 65536
           metadata:
             creationTimestamp: null
           network:
             devices:
-            - networkName: VLAN225
+            - networkName: $(STORAGE_NETWORK)
           numCPUs: 8
           numCoresPerSocket: 2
           snapshot: ""
-          template: ocp2-sz7qn-rhcos-default_region-default_zone
+          template: $(RHCOS_TEMPLATE)
           userDataSecret:
-            name: worker-user-data
+            name: $(USER_DATA_SECRET)
           workspace:
-            datacenter: VxRail-Datacenter
-            datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-3424f606-f285-4436-9c7e-f1497032666a
-            folder: /VxRail-Datacenter/vm/openshiftocp1/
-            resourcePool: /VxRail-Datacenter/host/VXRail-LinuxProd/Resources
-            server: uswivc02.kohlerco.com
+            datacenter: $(VSPHERE_DATACENTER)
+            datastore: $(VSPHERE_DATASTORE)
+            folder: $(VSPHERE_FOLDER)
+            resourcePool: $(VSPHERE_RESOURCE_POOL)
+            server: $(VSPHERE_SERVER)
