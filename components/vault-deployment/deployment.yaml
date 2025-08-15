@@ -41,8 +41,8 @@ spec:
         args:
         - -c
         - |
-          # Skip ownership changes and start Vault directly
-          exec vault server -config=/vault/config/vault.json
+          # Start Vault with basic configuration
+          exec vault server -dev -dev-root-token-id=root -dev-listen-address=0.0.0.0:8200
         ports:
         - containerPort: 8200
           name: http
@@ -80,20 +80,18 @@ spec:
           httpGet:
             path: /v1/sys/health
             port: 8200
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 30
-          timeoutSeconds: 10
-          failureThreshold: 5
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /v1/sys/health
             port: 8200
-            scheme: HTTP
-          initialDelaySeconds: 60
-          periodSeconds: 15
-          timeoutSeconds: 10
-          failureThreshold: 5
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
       volumes:
       - name: vault-config
         configMap:
