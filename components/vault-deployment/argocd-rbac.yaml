@@ -1,0 +1,41 @@
+---
+# RBAC resources to allow ArgoCD to deploy Vault
+# This will be deployed before the main Vault resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argocd-vault-deployer
+  annotations:
+    argocd.argoproj.io/sync-wave: "14"
+  labels:
+    app.kubernetes.io/name: argocd-vault-deployer
+    app.kubernetes.io/part-of: vault-deployment
+rules:
+- apiGroups: [""]
+  resources: ["namespaces", "serviceaccounts", "configmaps", "persistentvolumeclaims", "services", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "statefulsets", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles", "clusterrolebindings", "roles", "rolebindings"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-vault-deployer
+  labels:
+    app.kubernetes.io/name: argocd-vault-deployer
+    app.kubernetes.io/part-of: vault-deployment
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argocd-vault-deployer
+subjects:
+- kind: ServiceAccount
+  name: openshift-gitops-argocd-application-controller
+  namespace: openshift-gitops

@@ -6,6 +6,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "15"
 namespace: vault-system
 resources:
+  - ./argocd-rbac.yaml
   - ./namespace.yaml
   - ./service-account.yaml
   - ./configmap.yaml
