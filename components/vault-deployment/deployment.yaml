@@ -25,9 +25,9 @@ spec:
       serviceAccountName: vault
       securityContext:
         runAsNonRoot: true
-        runAsUser: 100
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsUser: 1000780000
+        runAsGroup: 1000780000
+        fsGroup: 1000780000
       containers:
       - name: vault
         image: hashicorp/vault:1.15.2
@@ -40,12 +40,8 @@ spec:
         - containerPort: 8201
           name: https-internal
         env:
-        - name: VAULT_CACERT
-          value: "/vault/config/ca.crt"
-        - name: VAULT_SKIP_VERIFY
-          value: "true"
         - name: VAULT_ADDR
-          value: "https://127.0.0.1:8200"
+          value: "http://127.0.0.1:8200"
         volumeMounts:
         - name: vault-config
           mountPath: /vault/config
