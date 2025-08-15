@@ -2,13 +2,13 @@
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
-  name: $(MACHINESET_NAME)
+  name: ocp2-mbh44-odf-infra
   namespace: openshift-machine-api
   annotations:
     argocd.argoproj.io/sync-wave: "4"
   labels:
-    machine.openshift.io/cluster-api-cluster: $(CLUSTER_NAME)
-    machine.openshift.io/cluster-api-machineset: $(MACHINESET_NAME)
+    machine.openshift.io/cluster-api-cluster: ocp2-mbh44
+    machine.openshift.io/cluster-api-machineset: ocp2-mbh44-odf-infra
     machine.openshift.io/machine-type: infra
     machine.openshift.io/machine-role: infra
     app.kubernetes.io/name: odf-infrastructure
@@ -18,15 +18,15 @@ spec:
   replicas: 3
   selector:
     matchLabels:
-      machine.openshift.io/cluster-api-cluster: $(CLUSTER_NAME)
-      machine.openshift.io/cluster-api-machineset: $(MACHINESET_NAME)
+      machine.openshift.io/cluster-api-cluster: ocp2-mbh44
+      machine.openshift.io/cluster-api-machineset: ocp2-mbh44-odf-infra
   template:
     metadata:
       labels:
-        machine.openshift.io/cluster-api-cluster: $(CLUSTER_NAME)
+        machine.openshift.io/cluster-api-cluster: ocp2-mbh44
         machine.openshift.io/cluster-api-machine-role: infra
         machine.openshift.io/cluster-api-machine-type: infra
-        machine.openshift.io/cluster-api-machineset: $(MACHINESET_NAME)
+        machine.openshift.io/cluster-api-machineset: ocp2-mbh44-odf-infra
         # ODF Storage Labels
         cluster.ocs.openshift.io/openshift-storage: ""
         node-role.kubernetes.io/infra: ""
@@ -38,6 +38,13 @@ spec:
     spec:
       lifecycleHooks: {}
       metadata: {}
+      taints:
+      - key: node-role.kubernetes.io/infra
+        value: ""
+        effect: NoSchedule
+      - key: node.ocs.openshift.io/storage
+        value: "true"
+        effect: NoSchedule
       providerSpec:
         value:
           apiVersion: machine.openshift.io/v1beta1
@@ -45,8 +52,6 @@ spec:
           credentialsSecret:
             name: vsphere-cloud-credentials
           diskGiB: 250
-          disk1GiB: 2048
-          disk2GiB: 1024
           memoryMiB: 65536
           metadata:
             creationTimestamp: null
