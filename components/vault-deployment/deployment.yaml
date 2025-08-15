@@ -32,6 +32,11 @@ spec:
       containers:
       - name: vault
         image: hashicorp/vault:1.15.2
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         args:
         - "server"
         - "-config=/vault/config/vault.json"
@@ -43,6 +48,10 @@ spec:
         env:
         - name: VAULT_ADDR
           value: "http://127.0.0.1:8200"
+        - name: VAULT_SKIP_VERIFY
+          value: "true"
+        - name: VAULT_CACERT
+          value: ""
         volumeMounts:
         - name: vault-config
           mountPath: /vault/config
