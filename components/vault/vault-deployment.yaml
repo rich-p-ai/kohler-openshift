@@ -59,13 +59,13 @@ spec:
             memory: 2Gi
         securityContext:
           runAsNonRoot: true
-          runAsUser: 10001
-          runAsGroup: 10001
+          runAsUser: 1000810000
+          runAsGroup: 1000810000
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]
       securityContext:
-        fsGroup: 10001
+        fsGroup: 1000810000
       volumes:
       - name: vault-config
         configMap:
