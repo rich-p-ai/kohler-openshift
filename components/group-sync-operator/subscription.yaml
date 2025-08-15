@@ -14,5 +14,6 @@ spec:
   channel: stable
   installPlanApproval: Automatic
   name: group-sync-operator
-  source: redhat-operators
+  source: redhat-community-operators
   sourceNamespace: openshift-marketplace
+  startingCSV: group-sync-operator.v0.0.36
