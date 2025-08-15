@@ -9,3 +9,4 @@ resources:
   - ./subscription.yaml
   - ./azure-ad-credentials-secret.yaml
   - ./azure-ad-groupsync.yaml
+  - ./argocd-rbac.yaml

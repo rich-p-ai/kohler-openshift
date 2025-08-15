@@ -1,0 +1,39 @@
+---
+# ClusterRole for ArgoCD to manage GroupSync resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argocd-group-sync-manager
+  labels:
+    app.kubernetes.io/name: argocd-group-sync-manager
+    app.kubernetes.io/part-of: group-sync-operator
+rules:
+- apiGroups:
+  - redhatcop.redhat.io
+  resources:
+  - groupsyncs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+# ClusterRoleBinding to bind the role to ArgoCD service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-group-sync-manager
+  labels:
+    app.kubernetes.io/name: argocd-group-sync-manager
+    app.kubernetes.io/part-of: group-sync-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argocd-group-sync-manager
+subjects:
+- kind: ServiceAccount
+  name: openshift-gitops-argocd-application-controller
+  namespace: openshift-gitops
