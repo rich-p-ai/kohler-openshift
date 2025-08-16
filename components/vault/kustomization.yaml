@@ -12,7 +12,7 @@ resources:
   - vault-configmap.yaml
   - vault-rbac.yaml
   - vault-route.yaml
-  - vault-root-token-secret.yaml
+  # vault-root-token-secret.yaml - Removed to prevent overwriting with placeholder
   - vault-azure-config-secret.yaml
   - vault-config-job.yaml
   # Simple Vault deployment for Azure AD testing
