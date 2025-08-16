@@ -38,7 +38,7 @@ spec:
           
           # Login with root token
           echo "Logging in to Vault..."
-          vault login -address=http://vault-simple:8200 -method=token $VAULT_ROOT_TOKEN
+          vault login -address=http://vault-simple:8200 -method=token $VAULT_TOKEN
           
           # Enable Kubernetes authentication
           echo "Enabling Kubernetes authentication..."
@@ -142,7 +142,7 @@ spec:
         env:
         - name: VAULT_ADDR
           value: "http://vault-simple:8200"
-        - name: VAULT_ROOT_TOKEN
+        - name: VAULT_TOKEN
           valueFrom:
             secretKeyRef:
               name: vault-root-token
@@ -157,13 +157,6 @@ spec:
             secretKeyRef:
               name: vault-azure-config
               key: service-principal-id
-        volumeMounts:
-        - name: vault-token
-          mountPath: /root/.vault-token
-          subPath: token
-      volumes:
-      - name: vault-token
-        secret:
-          secretName: vault-root-token
+
       restartPolicy: Never
       backoffLimit: 3
