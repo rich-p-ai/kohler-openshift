@@ -1,0 +1,121 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-oidc-config
+  namespace: vault
+  labels:
+    app.kubernetes.io/name: vault-simple
+    app.kubernetes.io/part-of: platform
+spec:
+  template:
+    spec:
+      serviceAccountName: vault
+      containers:
+      - name: vault-config
+        image: hashicorp/vault:1.15.2
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          # Wait for Vault to be ready
+          echo "Waiting for Vault to be ready..."
+          until vault status -address=http://vault-simple:8200; do
+            echo "Vault not ready, waiting..."
+            sleep 5
+          done
+          
+          # Check if Vault is already initialized and unsealed
+          VAULT_STATUS=$(vault status -address=http://vault-simple:8200)
+          echo "Vault status:"
+          echo "$VAULT_STATUS"
+          
+          if echo "$VAULT_STATUS" | grep -q "Initialized.*true" && echo "$VAULT_STATUS" | grep -q "Sealed.*false"; then
+            echo "Vault is initialized and unsealed - proceeding with configuration"
+          else
+            echo "Vault is not ready - needs to be initialized or unsealed"
+            exit 1
+          fi
+          
+          # Login with root token
+          echo "Logging in to Vault..."
+          vault login -address=http://vault-simple:8200 -method=token $VAULT_TOKEN
+          
+          # Enable OIDC authentication
+          echo "Enabling OIDC authentication..."
+          if ! vault auth list -address=http://vault-simple:8200 | grep -q "oidc/"; then
+            vault auth enable -address=http://vault-simple:8200 oidc
+            echo "OIDC authentication enabled"
+          else
+            echo "OIDC authentication already enabled"
+          fi
+          
+          # Configure OIDC authentication with Azure AD
+          echo "Configuring OIDC authentication with Azure AD..."
+          vault write -address=http://vault-simple:8200 auth/oidc/config \
+            oidc_discovery_url="https://login.microsoftonline.com/$AZURE_TENANT_ID/v2.0" \
+            oidc_client_id="$AZURE_CLIENT_ID" \
+            oidc_client_secret="$AZURE_CLIENT_SECRET" \
+            oidc_response_mode="form_post" \
+            oidc_response_types="code" \
+            default_role="azure-users"
+          
+          # Create OIDC role for Azure AD users
+          echo "Creating OIDC role for Azure AD users..."
+          vault write -address=http://vault-simple:8200 auth/oidc/role/azure-users \
+            user_claim="email" \
+            groups_claim="groups" \
+            allowed_redirect_uris="https://vault-simple-vault.apps.ocp2.kohlerco.com/ui/auth/oidc/callback" \
+            policies="azure-user-policy" \
+            ttl=8h \
+            max_ttl=24h
+          
+          # Create Azure AD user policy
+          echo "Creating Azure AD user policy..."
+          vault policy write -address=http://vault-simple:8200 azure-user-policy - <<EOF
+          # Policy for Azure AD authenticated users
+          path "secret/*" {
+            capabilities = ["read", "list"]
+          }
+          path "apps/*" {
+            capabilities = ["read", "list"]
+          }
+          path "auth/oidc/login" {
+            capabilities = ["create", "read"]
+          }
+          EOF
+          
+          # Enable KV v2 secrets engine for apps if not already enabled
+          echo "Enabling KV v2 secrets engine for apps..."
+          if ! vault secrets list -address=http://vault-simple:8200 | grep -q "apps/"; then
+            vault secrets enable -address=http://vault-simple:8200 -path=apps kv-v2
+            echo "KV v2 secrets engine enabled at apps/"
+          else
+            echo "KV v2 secrets engine already enabled"
+          fi
+          
+          echo "OIDC configuration completed successfully!"
+        env:
+        - name: VAULT_ADDR
+          value: "http://vault-simple:8200"
+        - name: VAULT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: vault-root-token
+              key: token
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: vault-azure-config
+              key: tenant-id
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: vault-azure-config
+              key: client-id
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: vault-azure-config
+              key: client-secret
+      restartPolicy: Never
+      backoffLimit: 3

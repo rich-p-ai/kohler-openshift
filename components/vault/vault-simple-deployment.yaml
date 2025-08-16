@@ -20,25 +20,8 @@ spec:
       containers:
       - name: vault
         image: hashicorp/vault:1.15.2
-        command: ["/bin/sh"]
-        args:
-        - -c
-        - |
-          # Start Vault with inline configuration
-          exec vault server -config=- <<EOF
-          storage "file" {
-            path = "/vault/file"
-          }
-          listener "tcp" {
-            address = "0.0.0.0:8200"
-            tls_disable = true
-          }
-          ui = true
-          disable_mlock = true
-          log_level = "info"
-          api_addr = "http://0.0.0.0:8200"
-          cluster_addr = "http://0.0.0.0:8201"
-          EOF
+        command: ["vault"]
+        args: ["server", "-config=/vault/config/vault.json"]
         ports:
         - containerPort: 8200
           name: http
@@ -48,6 +31,9 @@ spec:
         - name: VAULT_DISABLE_MLOCK
           value: "true"
         volumeMounts:
+        - name: vault-config
+          mountPath: /vault/config
+          readOnly: true
         - name: vault-data
           mountPath: /vault/file
         - name: vault-logs
@@ -75,6 +61,9 @@ spec:
           runAsNonRoot: true
           allowPrivilegeEscalation: false
       volumes:
+      - name: vault-config
+        configMap:
+          name: vault-simple-config
       - name: vault-data
         persistentVolumeClaim:
           claimName: vault-simple-data
