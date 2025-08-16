@@ -276,6 +276,18 @@ applications:
       namespace: vault
     syncOptions:
     - CreateNamespace=true
+    
+  external-secrets:
+    enabled: true
+    labels:
+      component: security
+      phase: platform
+    source:
+      path: components/external-secrets
+    destination:
+      namespace: external-secrets-system
+    syncOptions:
+    - CreateNamespace=true
   # kube-ops-view:
   #   enabled: false  # Cluster visualization - enable if needed
   #   labels:
