@@ -283,7 +283,7 @@ applications:
       component: security
       phase: platform
     source:
-      path: components/external-secrets
+      path: components/external-secrets-helm
     destination:
       namespace: external-secrets-system
     syncOptions:
