@@ -11,8 +11,6 @@ helmCharts:
   version: 0.9.9
   releaseName: external-secrets
   namespace: external-secrets-system
-  valuesInline:
-    installCRDs: true
 
 # Additional resources
 resources:
