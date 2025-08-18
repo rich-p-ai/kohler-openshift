@@ -7,6 +7,9 @@ metadata:
 # Additional resources
 resources:
 - namespace.yaml
+- vault-eso-token-secret.yaml
+- vault-token-auth-secretstore.yaml
+- test-external-secret.yaml
 
 commonLabels:
   app.kubernetes.io/name: external-secrets
