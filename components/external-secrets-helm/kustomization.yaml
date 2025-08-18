@@ -18,7 +18,7 @@ helmCharts:
 resources:
 - namespace.yaml
 
-labels:
+commonLabels:
   app.kubernetes.io/name: external-secrets
   app.kubernetes.io/part-of: platform
   component: security
