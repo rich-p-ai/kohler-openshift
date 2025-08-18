@@ -11,8 +11,8 @@ helmCharts:
   version: 0.9.9
   releaseName: external-secrets
   namespace: external-secrets-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
+  # annotations:
+#     argocd.argoproj.io/sync-wave: "1"
   valuesInline:
     installCRDs: true
     serviceAccount:
