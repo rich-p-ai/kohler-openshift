@@ -1,0 +1,19 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: redhat-operators
+  namespace: openshift-marketplace
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: "SkipDryRunOnMissingResource=true"
+spec:
+  sourceType: grpc
+  image: registry.redhat.io/redhat/redhat-operator-index:v4.15
+  displayName: Red Hat Operators
+  publisher: Red Hat
+  updateStrategy:
+    registryPoll:
+      interval: 10m
+  grpcPodConfig:
+    securityContextConfig: restricted
