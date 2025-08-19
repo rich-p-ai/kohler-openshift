@@ -93,27 +93,27 @@ applications:
     destination:
       namespace: openshift-storage
 
-  # oadp-operator:
-  #   enabled: true
-  #   labels:
-  #     component: backup
-  #     phase: data
-  #   source:
-  #     path: components/oadp-operator
-  #   destination:
-  #     namespace: openshift-adp
-  #   syncOptions:
-  #   - CreateNamespace=true
+  oadp-operator:
+    enabled: true
+    labels:
+      component: backup
+      phase: data
+    source:
+      path: components/oadp-operator
+    destination:
+      namespace: openshift-adp
+    syncOptions:
+    - CreateNamespace=true
     
-  # oadp-configuration:
-  #   enabled: true
-  #   labels:
-  #     component: backup
-  #     phase: data
-  #   source:
-  #     path: components/oadp-configuration
-  #   destination:
-  #     namespace: openshift-adp
+  oadp-configuration:
+    enabled: true
+    labels:
+      component: backup
+      phase: data
+    source:
+      path: components/oadp-configuration
+    destination:
+      namespace: openshift-adp
       
   # oadp-scheduled-backups:
   #   enabled: true
