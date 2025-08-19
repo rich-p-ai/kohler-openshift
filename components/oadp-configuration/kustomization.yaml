@@ -4,4 +4,5 @@ kind: Kustomization
 
 resources:
   - ./backup-storage-credentials.yaml
+  - ./backup-storage-credentials-ocp2.yaml
   - ./data-protection-application.yaml

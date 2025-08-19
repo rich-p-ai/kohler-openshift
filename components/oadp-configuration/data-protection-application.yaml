@@ -2,7 +2,7 @@
 apiVersion: oadp.openshift.io/v1alpha1
 kind: DataProtectionApplication
 metadata:
-  name: cluster-velero-config
+  name: ocp2-velero-config
   namespace: openshift-adp
   annotations:
     argocd.argoproj.io/sync-wave: "15"
@@ -34,10 +34,10 @@ spec:
         bucket: kohler-oadp-backups-ec378362-ab9d-433a-bd1a-87af6e630eba
         prefix: ocp2
       provider: aws
-    name: cluster-backup-location
+    name: ocp2-backup-location
   snapshotLocations:
   - velero:
       config:
         region: us-east-1
       provider: aws
-    name: cluster-snapshot-location
+    name: ocp2-snapshot-location
