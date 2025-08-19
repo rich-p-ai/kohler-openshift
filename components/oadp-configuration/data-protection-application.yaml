@@ -6,6 +6,7 @@ metadata:
   namespace: openshift-adp
   annotations:
     argocd.argoproj.io/sync-wave: "15"
+    argocd.argoproj.io/sync-options: "SkipDryRunOnMissingResource=true"
 spec:
   configuration:
     velero:
@@ -31,7 +32,7 @@ spec:
       default: true
       objectStorage:
         bucket: kohler-oadp-backups-ec378362-ab9d-433a-bd1a-87af6e630eba
-        prefix: ${CLUSTER_NAME:-cluster}
+        prefix: ocp2
       provider: aws
     name: cluster-backup-location
   snapshotLocations:
