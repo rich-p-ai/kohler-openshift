@@ -1,0 +1,14 @@
+apiVersion: migration.openshift.io/v1alpha1
+kind: MigStorage
+metadata:
+  name: migration-storage
+  namespace: openshift-migration
+spec:
+  backupStorageProvider: aws
+  backupStorageConfig:
+    awsBucketName: ''
+    awsRegion: ''
+    credsSecretRef:
+      name: ''
+      namespace: ''
+

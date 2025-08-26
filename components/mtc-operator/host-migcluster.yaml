@@ -1,0 +1,8 @@
+apiVersion: migration.openshift.io/v1alpha1
+kind: MigCluster
+metadata:
+  name: host
+  namespace: openshift-migration
+spec:
+  isHostCluster: true
+  url: 'https://api.ocp2.kohlerco.com:6443'

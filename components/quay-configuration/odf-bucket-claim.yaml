@@ -1,0 +1,13 @@
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: quay-registry-storage
+  namespace: quay-enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  generateBucketName: quay-registry-ocp2
+  storageClassName: openshift-storage.noobaa.io
+  additionalConfig:
+    bucketclass: noobaa-default-bucket-class

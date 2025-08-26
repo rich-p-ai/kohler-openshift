@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: quay-redis
+  namespace: quay-enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  serviceName: quay-redis-service
+  replicas: 3
+  selector:
+    matchLabels:
+      app: quay-redis
+  template:
+    metadata:
+      labels:
+        app: quay-redis
+    spec:
+      containers:
+        - name: redis
+          image: registry.redhat.io/rhel8/redis-6:latest
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: redis-storage
+              mountPath: /var/lib/redis/data
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "500m"
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: ocs-storagecluster-ceph-rbd
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quay-redis-service
+  namespace: quay-enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  selector:
+    app: quay-redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+  type: ClusterIP

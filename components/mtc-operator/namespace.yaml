@@ -1,10 +1,9 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openshift-adp
+  name: openshift-migration
   labels:
+    name: openshift-migration
     openshift.io/cluster-monitoring: "true"
-    argocd.argoproj.io/managed-by: openshift-gitops
   annotations:
     argocd.argoproj.io/sync-wave: "1"

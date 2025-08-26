@@ -1,0 +1,73 @@
+# OCP2 Cluster-Specific Quay Configuration Values
+# This file contains the configuration values specific to the ocp2 cluster
+
+# Cluster Information
+cluster:
+  name: ocp2
+  domain: kohlerco.com
+  apiServer: https://api.ocp2.kohlerco.com:6443
+  console: https://console-openshift-console.apps.ocp2.kohlerco.com/
+
+# Quay Configuration
+quay:
+  # Registry hostname  
+  hostname: quay.apps.ocp2.kohlerco.com
+  
+  # Namespace
+  namespace: quay-enterprise
+  
+  # Storage Configuration (ODF)
+  storage:
+    type: s3
+    s3:
+      endpoint: s3-openshift-storage.apps.ocp2.kohlerco.com
+      bucketPrefix: kohler-quay-ocp2
+      storageClass: ocs-storagecluster-ceph-rbd
+  
+  # Database Configuration
+  database:
+    type: postgresql
+    postgresql:
+      replicas: 3
+      storage: 50Gi
+      storageClass: ocs-storagecluster-ceph-rbd
+      
+  # Redis Configuration  
+  redis:
+    replicas: 3
+    storage: 10Gi
+    storageClass: ocs-storagecluster-ceph-rbd
+
+# Azure AD Configuration - replace with actual values from Vault or environment
+azure:
+  tenantId: "${AZURE_TENANT_ID}"
+  clientId: "${AZURE_CLIENT_ID}"
+  clientSecret: "${AZURE_CLIENT_SECRET}"
+
+# Multi-cluster Mirroring Configuration
+mirroring:
+  enabled: true
+  targetClusters:
+    - name: ocp-prd
+      endpoint: https://quay.apps.ocp-prd.kohlerco.com
+      syncInterval: 3600
+    - name: ocp-dr
+      endpoint: https://quay.apps.ocp-dr.kohlerco.com
+      syncInterval: 1800
+    - name: ocp4
+      endpoint: https://quay.apps.ocp4.kohlerco.com
+      syncInterval: 7200
+
+# Security Configuration
+security:
+  scc: anyuid
+  priorityClass: system-cluster-critical
+  
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  namespace: openshift-monitoring
+
+# Network Configuration
+network:
+  type: OVNKubernetes

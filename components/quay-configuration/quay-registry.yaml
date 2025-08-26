@@ -1,0 +1,108 @@
+---
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: kohler-quay-registry
+  namespace: quay-enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  configBundleSecret: quay-config-bundle
+  components:
+    - kind: clair
+      managed: true
+    - kind: postgres
+      managed: false  # Using our HA PostgreSQL
+    - kind: redis
+      managed: false   # Using our HA Redis
+    - kind: objectstorage
+      managed: false   # Using ODF S3
+    - kind: route
+      managed: true
+    - kind: mirror
+      managed: true
+    - kind: monitoring
+      managed: true
+    - kind: tls
+      managed: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: quay-config-bundle
+  namespace: quay-enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+type: kubernetes.io/opaque
+stringData:
+  config.yaml: |
+    # Quay Configuration with ODF S3 + Azure AD
+    FEATURE_GENERAL_OCI_SUPPORT: true
+    FEATURE_EXTENDED_REPOSITORY_NAMES: true
+    FEATURE_QUOTA_MANAGEMENT: true
+    FEATURE_PROXY_CACHE: true
+    FEATURE_TEAM_SYNCING: true
+    FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true
+    
+    # Database Configuration (External PostgreSQL HA)
+    DB_URI: postgresql://quayuser:QuayPgSQL2024SecurePass!@quay-postgres-service.quay-enterprise.svc.cluster.local:5432/quay
+    
+    # Redis Configuration (External Redis HA)
+    BUILDLOGS_REDIS:
+      host: quay-redis-service.quay-enterprise.svc.cluster.local
+      port: 6379
+    USER_EVENTS_REDIS:
+      host: quay-redis-service.quay-enterprise.svc.cluster.local
+      port: 6379
+    
+    # ODF S3 Storage Configuration  
+    DISTRIBUTED_STORAGE_CONFIG:
+      s3Storage:
+        - S3Storage
+        - host: s3-openshift-storage.apps.ocp2.kohlerco.com
+          s3_access_key: ""  # Will be populated by External Secrets
+          s3_secret_key: ""  # Will be populated by External Secrets
+          s3_bucket: ""      # Will be populated by External Secrets
+          storage_path: /kohler-quay
+    DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: ['s3Storage']
+    DISTRIBUTED_STORAGE_PREFERENCE: ['s3Storage']
+    
+    # Azure AD OIDC Configuration
+    AUTHENTICATION_TYPE: OIDC
+    OIDC_SERVER_URL: https://login.microsoftonline.com/${AZURE_TENANT_ID}/v2.0
+    OIDC_CLIENT_ID: ${AZURE_CLIENT_ID}
+    OIDC_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
+    OIDC_LOGIN_SCOPES: ['openid', 'email', 'profile', 'groups']
+    
+    # Team Synchronization with Azure AD Groups
+    FEATURE_TEAM_SYNCING: true
+    TEAM_RESYNC_STALE_TIME: 60  # minutes
+    TEAM_SYNC_WORKER_FREQUENCY: 3600  # seconds (1 hour)
+    
+    # Multi-cluster Registry Configuration
+    FEATURE_REPO_MIRROR: true
+    REPO_MIRROR_ROLLBACK: true
+    REPO_MIRROR_TLS_VERIFY: true
+    
+    # Security Configuration
+    FEATURE_SECURITY_NOTIFICATIONS: true
+    FEATURE_SECURITY_SCANNER: true
+    SECURITY_SCANNER_V4_ENDPOINT: http://clair-app.quay-enterprise.svc.cluster.local:8080
+    
+    # Registry Configuration
+    PREFERRED_URL_SCHEME: https
+    SERVER_HOSTNAME: quay.apps.ocp2.kohlerco.com
+    
+    # Superuser Configuration
+    SUPER_USERS: ['admin']
+    
+    # Log Configuration  
+    LOGS_MODEL: database
+    LOGS_MODEL_CONFIG: {}
+    
+    # Build Configuration
+    FEATURE_BUILD_SUPPORT: false  # Disable builds for security
+    
+    # Access settings
+    FEATURE_PUBLIC_CATALOG: false
+    FEATURE_USER_CREATION: false  # Only admins can create users

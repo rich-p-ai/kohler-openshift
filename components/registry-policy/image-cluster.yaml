@@ -1,0 +1,24 @@
+---
+apiVersion: config.openshift.io/v1
+kind: Image
+metadata:
+  name: cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  registrySources:
+    allowedRegistries:
+    - kohler-registry-quay-quay.apps.ocp-host.kohlerco.com
+    - registry.kohlerco.com
+    - quay.apps.ocp.kohlerco.com
+    - quay.kohlerco.com
+    - quay.io
+    - registry.redhat.io
+    - registry.connect.redhat.com
+    - image-registry.openshift-image-registry.svc:5000
+    - docker.io
+    - kohlercitregistry.azurecr.io
+    insecureRegistries:
+    - quay.apps.ocp.kohlerco.com
+  additionalTrustedCA:
+    name: registry-config

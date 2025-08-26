@@ -1,0 +1,31 @@
+apiVersion: migration.openshift.io/v1alpha1
+kind: MigrationController
+metadata:
+  name: migration-controller
+  namespace: openshift-migration
+spec:
+  # Migration controller configuration
+  migration_controller: true
+  # Migration UI configuration
+  migration_ui: false
+  # Velero configuration for backup/restore operations
+  velero_image: registry.redhat.io/rhmtc/openshift-migration-rhel8-velero-rhel8:v1.8.9
+  # Restic configuration for file-level backup
+  restic_image: registry.redhat.io/rhmtc/openshift-migration-rhel8-velero-rhel8:v1.8.9
+  # Registry configuration
+  registry_image: registry.redhat.io/rhmtc/openshift-migration-rhel8-registry-rhel8:v1.8.9
+  # Migration controller settings
+  mig_controller_limits_cpu: "1"
+  mig_controller_limits_memory: "1Gi"
+  mig_controller_requests_cpu: "100m"
+  mig_controller_requests_memory: "256Mi"
+  # Velero settings
+  velero_limits_cpu: "1"
+  velero_limits_memory: "1Gi"
+  velero_requests_cpu: "100m"
+  velero_requests_memory: "256Mi"
+  # Restic settings
+  restic_limits_cpu: "1"
+  restic_limits_memory: "1Gi"
+  restic_requests_cpu: "100m"
+  restic_requests_memory: "256Mi"

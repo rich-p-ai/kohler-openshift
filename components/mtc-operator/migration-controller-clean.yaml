@@ -1,0 +1,12 @@
+apiVersion: migration.openshift.io/v1alpha1
+kind: MigrationController
+metadata:
+  name: migration-controller
+  namespace: openshift-migration
+spec:
+  # Enable migration controller
+  migration_controller: true
+  # Disable migration UI (not needed for CLI operations)
+  migration_ui: false
+  # Enable Velero for backup/restore operations
+  migration_velero: true

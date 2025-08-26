@@ -1,4 +1,39 @@
 ---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mtc-configuration
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+  labels:
+    component: migration
+    phase: platform
+spec:
+  project: cluster-config
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/mtc
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-migration
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+  ignoreDifferences:
+    - group: migration.openshift.io
+      kind: MigCluster
+      jsonPointers:
+        - /status
+    - group: migration.openshift.io
+      kind: MigrationController
+      jsonPointers:
+        - /status
 # Phase 3: Infrastructure and Security Applications
 apiVersion: argoproj.io/v1alpha1
 kind: Application

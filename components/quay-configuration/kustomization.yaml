@@ -1,0 +1,22 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: quay-enterprise
+
+resources:
+  - ./odf-bucket-claim.yaml
+  - ./postgres-ha.yaml
+  - ./redis-ha.yaml
+  - ./quay-registry.yaml
+  - ./azure-ad-config.yaml
+  - ./route.yaml
+
+secretGenerator:
+  - name: quay-postgres-credentials
+    type: kubernetes.io/opaque
+    literals:
+      - password=QuayPgSQL2024SecurePass!
+
+commonLabels:
+  app.kubernetes.io/name: quay-configuration
+  app.kubernetes.io/component: registry

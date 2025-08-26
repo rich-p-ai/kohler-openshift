@@ -1,0 +1,40 @@
+apiVersion: migration.openshift.io/v1alpha1
+kind: MigPlan
+metadata:
+  name: ocp-prd-to-ocp2-migration
+  namespace: openshift-migration
+spec:
+  sourceMigClusterRef:
+    name: ocp-prd-source-cluster
+  destinationMigClusterRef:
+    name: ocp2-target-cluster
+  sourceMigStorageRef:
+    name: migration-storage
+  destinationMigStorageRef:
+    name: migration-storage
+  namespaces:
+  # Core Business Applications
+  - balance-fit-prd
+  - humanresourceapps
+  - kitchenandbathapps
+  - corporateapps
+  - crmapplications
+  - financeapps2
+  - legalapps
+  
+  # Infrastructure and Tools
+  - cert-manager
+  - kohler-historian
+  - kohler-smartfactory
+  
+  # Data and Analytics
+  - data-analytics
+  - meslite
+  
+  # SFTP and File Services
+  - acf1-sftp-prd
+  
+  # Development and Testing
+  - coldfusion
+  - fmv-poc
+  - kohler-az-agents

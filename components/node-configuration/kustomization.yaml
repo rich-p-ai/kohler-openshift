@@ -6,3 +6,4 @@ metadata:
     argocd.argoproj.io/sync-wave: "4"
 resources:
   - ./infra-nodes.yaml
+  - ./infra-overcommit-kubeletconfig.yaml

@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-config
+  namespace: openshift-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+data:
+  # Additional trusted CA certificates for external registries
+  # This will be populated with CA certificates for:
+  # - kohler-registry-quay-quay.apps.ocp-host.kohlerco.com
+  # - quay.apps.ocp.kohlerco.com
+  # - kohlercitregistry.azurecr.io (if custom CA is needed)
+  ca-bundle.crt: |
+    # CA certificates will be added here as needed
+    # For Azure Container Registry, usually no custom CA is needed
+    # For internal Quay instances, add the CA chain here

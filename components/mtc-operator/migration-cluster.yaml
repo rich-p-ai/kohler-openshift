@@ -1,0 +1,14 @@
+apiVersion: migration.openshift.io/v1alpha1
+kind: MigCluster
+metadata:
+  name: ocp2-target-cluster
+  namespace: openshift-migration
+spec:
+  isHostCluster: false
+  url: 'https://api.ocp2.kohlerco.com:6443'
+  serviceAccountSecretRef:
+    name: ocp2-target-secret
+    namespace: openshift-migration
+  exposedRegistryPath: ''
+  azureResourceGroup: ''
+  refresh: false

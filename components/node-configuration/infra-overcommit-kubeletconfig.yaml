@@ -1,0 +1,57 @@
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  name: infra-overcommit-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  # Target infrastructure nodes
+  machineConfigPoolSelector:
+    matchLabels:
+      pools.operator.machineconfiguration.openshift.io/infra: ""
+  
+  kubeletConfig:
+    # Enable overcommitment by disabling resource enforcement
+    enforceNodeAllocatable: []
+    
+    # Minimize system and kube reserved resources to maximize overcommitment
+    systemReserved:
+      cpu: "100m"      # Minimal CPU reservation
+      memory: "500Mi"   # Minimal memory reservation
+    
+    kubeReserved:
+      cpu: "100m"      # Minimal kubelet CPU reservation  
+      memory: "500Mi"   # Minimal kubelet memory reservation
+    
+    # More permissive eviction thresholds to allow higher utilization
+    evictionHard:
+      memory.available: "100Mi"    # Allow very low available memory
+      nodefs.available: "5%"       # Allow low disk space
+      nodefs.inodesFree: "3%"      # Allow low inode availability
+      imagefs.available: "10%"     # Allow low image filesystem space
+    
+    evictionSoft:
+      memory.available: "200Mi"    # Soft eviction at 200Mi available
+      nodefs.available: "10%"      # Soft eviction at 10% disk space
+      nodefs.inodesFree: "5%"      # Soft eviction at 5% inodes
+      imagefs.available: "15%"     # Soft eviction at 15% image space
+    
+    evictionSoftGracePeriod:
+      memory.available: "30s"      # Grace period for memory
+      nodefs.available: "60s"      # Grace period for disk space
+      nodefs.inodesFree: "60s"     # Grace period for inodes
+      imagefs.available: "60s"     # Grace period for image space
+    
+    # Increase eviction pressure transition timeout for stability
+    evictionPressureTransitionPeriod: "60s"
+    
+    # Allow more aggressive resource allocation
+    systemReservedCgroup: ""  # Don't enforce system reserved cgroup limits
+    kubeReservedCgroup: ""    # Don't enforce kube reserved cgroup limits
+    
+    # Enable CPU CFS quota for better CPU overcommitment
+    cpuCFSQuota: true
+    
+    # Increase maximum pods per node to handle more workloads
+    maxPods: 250

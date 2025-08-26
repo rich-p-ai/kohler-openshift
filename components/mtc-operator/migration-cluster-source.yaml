@@ -1,0 +1,14 @@
+apiVersion: migration.openshift.io/v1alpha1
+kind: MigCluster
+metadata:
+  name: ocp-prd-source-cluster
+  namespace: openshift-migration
+spec:
+  isHostCluster: true
+  url: 'https://api.ocp-prd.kohlerco.com:6443'
+  serviceAccountSecretRef:
+    name: ocp-prd-source-secret
+    namespace: openshift-migration
+  exposedRegistryPath: ''
+  azureResourceGroup: ''
+  refresh: false

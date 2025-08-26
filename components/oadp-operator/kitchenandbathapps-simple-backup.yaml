@@ -1,0 +1,11 @@
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: kitchenandbathapps-simple-20250819-225424
+  namespace: openshift-adp
+spec:
+  includedNamespaces:
+  - kitchenandbathapps
+  storageLocation: balance-fit-velero-config-1
+  includeClusterResources: false
+  ttl: 168h0m0s

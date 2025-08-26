@@ -1,0 +1,81 @@
+---
+# Quay Operator Application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: quay-operator-ocp2
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+  destination:
+    namespace: openshift-operators
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/quay-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+---
+# Quay Configuration Application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: quay-configuration-ocp2
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: default
+  destination:
+    namespace: quay-enterprise
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/quay-configuration
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+  ignoreDifferences:
+  - group: ""
+    kind: Secret
+    name: quay-config-bundle
+    jsonPointers:
+    - /data
+---
+# Quay Mirror Configuration Application  
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: quay-mirror-config-ocp2
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "25"
+spec:
+  project: default
+  destination:
+    namespace: quay-enterprise
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/rich-p-ai/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/quay-mirror-config
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true

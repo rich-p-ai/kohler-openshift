@@ -160,13 +160,13 @@ applications:
     destination:
       namespace: openshift-machine-api
       
-  # rbac-configuration:
-  #   enabled: true
-  #   labels:
-  #     component: security
-  #     phase: platform
-  #   source:
-  #     path: components/rbac-configuration
+  rbac-configuration:
+    enabled: true
+    labels:
+      component: security
+      phase: platform
+    source:
+      path: components/rbac-configuration
       
   # vsphere-configuration:
   #   enabled: true

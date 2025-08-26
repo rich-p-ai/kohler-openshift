@@ -1,0 +1,11 @@
+apiVersion: migration.openshift.io/v1alpha1
+kind: MigrationController
+metadata:
+  name: migration-controller
+  namespace: openshift-migration
+spec:
+  # All required fields must be explicitly defined
+  migration_controller: true
+  migration_ui: false
+  migration_velero: true
+

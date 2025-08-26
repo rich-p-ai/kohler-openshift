@@ -1,0 +1,11 @@
+apiVersion: migration.openshift.io/v1alpha1
+kind: MigrationController
+metadata:
+  name: migration-controller
+  namespace: openshift-migration
+spec:
+  # Use the exact field names the operator expects
+  migration_controller: true
+  migration_ui: false
+  # Remove all the problematic fields and keep it simple
+

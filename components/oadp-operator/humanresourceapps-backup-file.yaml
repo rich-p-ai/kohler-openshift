@@ -1,0 +1,13 @@
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: humanresourceapps-file-20250819-224328
+  namespace: openshift-adp
+spec:
+  includedNamespaces:
+  - humanresourceapps
+  storageLocation: balance-fit-velero-config-1
+  includeClusterResources: false
+  snapshotVolumes: false
+  defaultVolumesToRestic: true
+  ttl: 168h0m0s

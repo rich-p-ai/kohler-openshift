@@ -1,0 +1,9 @@
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: balance-fit-prd-restore-223721
+  namespace: openshift-adp
+spec:
+  backupName: balance-fit-prd-migration-20250819-222136
+  includeClusterResources: false
+  restorePVs: true

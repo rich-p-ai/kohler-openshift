@@ -100,3 +100,17 @@ data:
       key: node-role.kubernetes.io/infra
       operator: Exists
     ```
+    
+    ## Resource Overcommitment Configuration
+    
+    Infrastructure nodes are configured to allow CPU and memory overcommitment through:
+    - **KubeletConfig**: `infra-overcommit-config` 
+    - **Disabled enforcement**: `enforceNodeAllocatable: []`
+    - **Minimal reservations**: Reduced systemReserved and kubeReserved
+    - **Permissive eviction**: Higher utilization thresholds before pod eviction
+    
+    This allows infrastructure nodes to schedule more workloads than their physical resources,
+    improving cluster efficiency for infrastructure components that typically have low
+    sustained resource usage but may have periodic spikes.
+    
+    **Warning**: Monitor node resource usage carefully when overcommitment is enabled.

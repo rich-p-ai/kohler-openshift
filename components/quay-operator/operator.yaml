@@ -2,29 +2,24 @@
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
-  name: redhat-oadp-operator
-  namespace: openshift-adp
+  name: quay-enterprise-operatorgroup
+  namespace: quay-enterprise
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
   targetNamespaces:
-  - openshift-adp
+    - quay-enterprise
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: redhat-oadp-operator
-  namespace: openshift-adp
+  name: quay-operator
+  namespace: openshift-operators
   annotations:
     argocd.argoproj.io/sync-wave: "5"
-    argocd.argoproj.io/sync-options: "SkipDryRunOnMissingResource=true"
 spec:
-  channel: stable-1.4
+  channel: stable-3.12
   installPlanApproval: Automatic
-  name: redhat-oadp-operator
+  name: quay-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-  config:
-    env:
-    - name: OPERATOR_CONDITION_NAME
-      value: "oadp-operator.v1.4.0"

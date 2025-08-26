@@ -1,0 +1,21 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: quay-registry-route
+  namespace: quay-enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "25"
+    haproxy.router.openshift.io/timeout: "180s"
+spec:
+  host: quay.apps.ocp2.kohlerco.com
+  to:
+    kind: Service
+    name: kohler-quay-registry-quay-app
+    weight: 100
+  port:
+    targetPort: https
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

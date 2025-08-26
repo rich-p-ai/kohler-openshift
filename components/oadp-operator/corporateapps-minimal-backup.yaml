@@ -1,0 +1,15 @@
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: corporateapps-minimal-20250819-230005
+  namespace: openshift-adp
+spec:
+  includedNamespaces:
+  - corporateapps
+  excludedResources:
+  - persistentvolumeclaims
+  - persistentvolumes
+  storageLocation: balance-fit-velero-config-1
+  includeClusterResources: false
+  snapshotVolumes: false
+  ttl: 168h0m0s
