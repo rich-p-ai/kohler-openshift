@@ -10,7 +10,7 @@ spec:
   configBundleSecret: quay-config-bundle
   components:
     - kind: clair
-      managed: true
+      managed: false  # Using custom configuration
     - kind: postgres
       managed: false  # Using our HA PostgreSQL
     - kind: redis
@@ -18,9 +18,9 @@ spec:
     - kind: objectstorage
       managed: false   # Using ODF S3
     - kind: route
-      managed: true
+      managed: false  # Using custom configuration
     - kind: tls
-      managed: true
+      managed: false  # Using custom configuration
 ---
 apiVersion: v1
 kind: Secret
