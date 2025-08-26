@@ -75,10 +75,10 @@ stringData:
     TEAM_RESYNC_STALE_TIME: 60  # minutes
     TEAM_SYNC_WORKER_FREQUENCY: 3600  # seconds (1 hour)
     
-    # Multi-cluster Registry Configuration
-    FEATURE_REPO_MIRROR: true
-    REPO_MIRROR_ROLLBACK: true
-    REPO_MIRROR_TLS_VERIFY: true
+    # Multi-cluster Registry Configuration (disabled for v3.4.7 compatibility)
+    # FEATURE_REPO_MIRROR: true
+    # REPO_MIRROR_ROLLBACK: true
+    # REPO_MIRROR_TLS_VERIFY: true
     
     # Security Configuration
     FEATURE_SECURITY_NOTIFICATIONS: true
