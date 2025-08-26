@@ -19,10 +19,6 @@ spec:
       managed: false   # Using ODF S3
     - kind: route
       managed: true
-    - kind: mirror
-      managed: true
-    - kind: monitoring
-      managed: true
     - kind: tls
       managed: true
 ---
