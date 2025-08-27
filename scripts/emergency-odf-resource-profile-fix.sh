@@ -91,16 +91,16 @@ oc patch storagecluster ocs-storagecluster -n openshift-storage --type='merge' -
     },
     "resources": {
       "mgr": {
-        "limits": {"cpu": "2", "memory": "4Gi"},
-        "requests": {"cpu": "1", "memory": "2Gi"}
+        "limits": {"cpu": "3", "memory": "6Gi"},
+        "requests": {"cpu": "2", "memory": "4Gi"}
       },
       "mon": {
-        "limits": {"cpu": "2", "memory": "2Gi"},
-        "requests": {"cpu": "1", "memory": "1Gi"}
+        "limits": {"cpu": "3", "memory": "4Gi"},
+        "requests": {"cpu": "2", "memory": "2Gi"}
       },
       "osd": {
-        "limits": {"cpu": "2", "memory": "4Gi"},
-        "requests": {"cpu": "1", "memory": "2Gi"}
+        "limits": {"cpu": "3", "memory": "6Gi"},
+        "requests": {"cpu": "2", "memory": "4Gi"}
       }
     }
   }

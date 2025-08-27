@@ -49,29 +49,29 @@ spec:
   resources:
     mgr:
       limits:
+        cpu: "3"
+        memory: 6Gi
+      requests:
         cpu: "2"
         memory: 4Gi
-      requests:
-        cpu: "1"
-        memory: 2Gi
     mon:
       limits:
-        cpu: "2"
-        memory: 2Gi
-      requests:
-        cpu: "1"
-        memory: 1Gi
-    osd:
-      limits:
-        cpu: "2"
+        cpu: "3"
         memory: 4Gi
       requests:
-        cpu: "1"
+        cpu: "2"
         memory: 2Gi
+    osd:
+      limits:
+        cpu: "3"
+        memory: 6Gi
+      requests:
+        cpu: "2"
+        memory: 4Gi
     mds:
       limits:
-        cpu: "2"
-        memory: 8Gi
+        cpu: "3"
+        memory: 12Gi
       requests:
-        cpu: "1"
+        cpu: "2"
         memory: 8Gi
