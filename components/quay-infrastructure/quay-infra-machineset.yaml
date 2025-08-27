@@ -44,14 +44,14 @@ spec:
           credentialsSecret:
             name: vsphere-cloud-credentials
           diskGiB: 120
-          memoryMiB: 16384
+          memoryMiB: 32768
           metadata:
             creationTimestamp: null
           network:
             devices:
             - networkName: VLAN225
-          numCPUs: 4
-          numCoresPerSocket: 2
+          numCPUs: 8
+          numCoresPerSocket: 4
           snapshot: ""
           template: ocp2-mbh44-rhcos-default_region-default_zone
           userDataSecret:
