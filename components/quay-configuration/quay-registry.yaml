@@ -81,8 +81,7 @@ stringData:
     
     # Security Configuration
     FEATURE_SECURITY_NOTIFICATIONS: true
-    FEATURE_SECURITY_SCANNER: true
-    SECURITY_SCANNER_V4_ENDPOINT: http://clair-app.quay-enterprise.svc.cluster.local:8080
+    
     
     # Registry Configuration
     PREFERRED_URL_SCHEME: https
