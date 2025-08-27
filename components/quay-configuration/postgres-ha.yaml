@@ -16,6 +16,7 @@ spec:
     metadata:
       labels:
         app: quay-postgres
+    spec:
       # Node selector to target Quay infrastructure nodes
       nodeSelector:
         node-role.kubernetes.io/quay: ""
