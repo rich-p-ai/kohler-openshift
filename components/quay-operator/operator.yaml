@@ -18,8 +18,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
-  channel: "quay-v3.14"
+  channel: "stable-3.15"
   installPlanApproval: Automatic
   name: quay-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
+
