@@ -160,6 +160,16 @@ applications:
     destination:
       namespace: openshift-machine-api
       
+  quay-infrastructure:
+    enabled: true
+    labels:
+      component: infrastructure
+      phase: platform
+    source:
+      path: components/quay-infrastructure
+    destination:
+      namespace: openshift-machine-api
+      
   rbac-configuration:
     enabled: true
     labels:
