@@ -1,0 +1,66 @@
+---
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  name: ocp2-mbh44-quay-infra
+  namespace: openshift-machine-api
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    machine.openshift.io/cluster-api-cluster: ocp2-mbh44
+    machine.openshift.io/cluster-api-machineset: ocp2-mbh44-quay-infra
+    machine.openshift.io/machine-type: infra
+    machine.openshift.io/machine-role: infra
+    app.kubernetes.io/name: quay-infrastructure
+    app.kubernetes.io/component: registry-nodes
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: ocp2-mbh44
+      machine.openshift.io/cluster-api-machineset: ocp2-mbh44-quay-infra
+  template:
+    metadata:
+      labels:
+        machine.openshift.io/cluster-api-cluster: ocp2-mbh44
+        machine.openshift.io/cluster-api-machine-role: infra
+        machine.openshift.io/cluster-api-machine-type: infra
+        machine.openshift.io/cluster-api-machineset: ocp2-mbh44-quay-infra
+        node-role.kubernetes.io/infra: ""
+        node-role.kubernetes.io/quay: ""
+        app.kubernetes.io/name: quay-infrastructure
+        app.kubernetes.io/component: registry-nodes
+    spec:
+      lifecycleHooks: {}
+      metadata: {}
+      taints:
+      - key: node-role.kubernetes.io/infra
+        value: ""
+        effect: NoSchedule
+      providerSpec:
+        value:
+          apiVersion: machine.openshift.io/v1beta1
+          kind: VSphereMachineProviderSpec
+          credentialsSecret:
+            name: vsphere-cloud-credentials
+          diskGiB: 120
+          memoryMiB: 16384
+          metadata:
+            creationTimestamp: null
+          network:
+            devices:
+            - networkName: VLAN225
+          numCPUs: 4
+          numCoresPerSocket: 2
+          snapshot: ""
+          template: ocp2-mbh44-rhcos-default_region-default_zone
+          userDataSecret:
+            name: worker-user-data
+          workspace:
+            datacenter: VxRail-Datacenter
+            datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-3424f606-f285-4436-9c7e-f1497032666a
+            folder: /VxRail-Datacenter/vm/openshiftocp1/
+            resourcePool: /VxRail-Datacenter/host/VXRail-LinuxProd/Resources
+            server: uswivc02.kohlerco.com
+
+
