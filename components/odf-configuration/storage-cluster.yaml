@@ -17,6 +17,16 @@ spec:
     kms: {}
   externalStorage: {}
   manageNodes: true
+  placement:
+    all:
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
   managedResources:
     cephBlockPools:
       defaultStorageClass: true
@@ -54,7 +64,7 @@ spec:
       encryption: {}
     multiClusterService: {}
   nodeTopologies: {}
-  resourceProfile: lean
+  resourceProfile: balanced
   resources:
     mds:
       limits:
@@ -86,6 +96,9 @@ spec:
             - key: node-role.kubernetes.io/infra
               operator: Exists
       tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
       - effect: NoSchedule
         key: node.ocs.openshift.io/storage
         operator: Equal
