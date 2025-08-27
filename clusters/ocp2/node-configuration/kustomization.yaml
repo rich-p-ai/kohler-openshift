@@ -1,0 +1,11 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - 99-worker-chrony.yaml
+  - 99-infra-chrony.yaml
+
+commonLabels:
+  app.kubernetes.io/name: node-configuration
+  app.kubernetes.io/component: chrony-ntp

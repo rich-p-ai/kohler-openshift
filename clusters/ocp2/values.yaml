@@ -48,6 +48,13 @@ default:
 # Critical Infrastructure Applications
 applications:
   # Phase 1: Core Infrastructure (Sync Wave 1-10)
+  node-configuration:
+    enabled: true
+    labels:
+      component: infrastructure
+      phase: core
+    source:
+      path: clusters/ocp2/node-configuration
    
   # network-configuration:
   #   enabled: true
