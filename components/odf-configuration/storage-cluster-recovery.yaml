@@ -1,0 +1,234 @@
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster-recovery
+  namespace: openshift-storage-recovery
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+    ocs.openshift.io/clusterIsDisasterRecoveryTarget: "true"
+    uninstall.ocs.openshift.io/cleanup-policy: delete
+    uninstall.ocs.openshift.io/mode: graceful
+spec:
+  arbiter: {}
+  encryption:
+    keyRotation:
+      schedule: '@weekly'
+    kms: {}
+  externalStorage: {}
+  manageNodes: true
+  managedResources:
+    cephBlockPools:
+      defaultStorageClass: true
+    cephCluster: {}
+    cephConfig: {}
+    cephDashboard: {}
+    cephFilesystems:
+      dataPoolSpec:
+        application: ""
+        erasureCoded:
+          codingChunks: 0
+          dataChunks: 0
+        mirroring: {}
+        quotas: {}
+        replicated:
+          size: 0
+        statusCheck:
+          mirror: {}
+    cephNonResilientPools:
+      count: 1
+      resources: {}
+      volumeClaimTemplate:
+        metadata: {}
+        spec:
+          resources: {}
+        status: {}
+    cephObjectStoreUsers: {}
+    cephObjectStores: null
+    cephRBDMirror:
+      daemonCount: 1
+    cephToolbox: {}
+  mirroring: {}
+  network:
+    connections:
+      encryption: {}
+    multiClusterService: {}
+  nodeTopologies:
+    labels:
+      kubernetes.io/hostname:
+      - ocp2-mbh44-odf-infra-grjdk
+      - ocp2-mbh44-odf-infra-z7kf2
+      - ocp2-mbh44-odf-infra-zsnck
+      topology.rook.io/rack:
+      - rack0
+      - rack0
+      - rack0
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+    mon:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+            - key: node-role.kubernetes.io/infra
+              operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+  resourceProfile: balanced
+  resources:
+    mgr:
+      limits:
+        cpu: "3"
+        memory: 6Gi
+      requests:
+        cpu: "2"
+        memory: 4Gi
+    mon:
+      limits:
+        cpu: "3"
+        memory: 4Gi
+      requests:
+        cpu: "2"
+        memory: 2Gi
+    osd:
+      limits:
+        cpu: "3"
+        memory: 6Gi
+      requests:
+        cpu: "2"
+        memory: 4Gi
+    mds:
+      limits:
+        cpu: "3"
+        memory: 12Gi
+      requests:
+        cpu: "2"
+        memory: 8Gi
+  storageDeviceSets:
+  - config: {}
+    count: 1
+    dataPVCTemplate:
+      metadata: {}
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Ti
+        storageClassName: thin-csi
+        volumeMode: Block
+        status: {}
+    name: ocs-deviceset-recovery-0
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+            - key: node-role.kubernetes.io/infra
+              operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+      portable: true
+      preparePlacement: {}
+      replica: 3
+      resources: {}
+  - config: {}
+    count: 1
+    dataPVCTemplate:
+      metadata: {}
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Ti
+        storageClassName: thin-csi
+        volumeMode: Block
+        status: {}
+    name: ocs-deviceset-recovery-1
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+            - key: node-role.kubernetes.io/infra
+              operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+      portable: true
+      preparePlacement: {}
+      replica: 3
+      resources: {}
+  - config: {}
+    count: 1
+    dataPVCTemplate:
+      metadata: {}
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Ti
+        storageClassName: thin-csi
+        volumeMode: Block
+        status: {}
+    name: ocs-deviceset-recovery-2
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+            - key: node-role.kubernetes.io/infra
+              operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+      portable: true
+      preparePlacement: {}
+      replica: 3
+      resources: {}
