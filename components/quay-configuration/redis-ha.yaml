@@ -16,7 +16,14 @@ spec:
     metadata:
       labels:
         app: quay-redis
-    spec:
+      # Node selector to target Quay infrastructure nodes
+      nodeSelector:
+        node-role.kubernetes.io/quay: ""
+      # Tolerations for infrastructure taints
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          operator: Exists
+          effect: NoSchedule
       containers:
         - name: redis
           image: registry.redhat.io/rhel8/redis-6:latest

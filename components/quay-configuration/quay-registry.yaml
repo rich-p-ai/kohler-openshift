@@ -8,6 +8,14 @@ metadata:
     argocd.argoproj.io/sync-wave: "20"
 spec:
   configBundleSecret: quay-config-bundle
+  # Node selector to target Quay infrastructure nodes
+  nodeSelector:
+    node-role.kubernetes.io/quay: ""
+  # Tolerations for infrastructure taints
+  tolerations:
+    - key: node-role.kubernetes.io/infra
+      operator: Exists
+      effect: NoSchedule
   components:
     - kind: clair
       managed: true
@@ -37,6 +45,7 @@ stringData:
     FEATURE_EXTENDED_REPOSITORY_NAMES: true
     FEATURE_QUOTA_MANAGEMENT: true
     FEATURE_PROXY_CACHE: true
+    FEATURE_TEAM_SYNCING: true
     FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true
     
     # Database Configuration (External PostgreSQL HA)
@@ -81,7 +90,8 @@ stringData:
     
     # Security Configuration
     FEATURE_SECURITY_NOTIFICATIONS: true
-    
+    FEATURE_SECURITY_SCANNER: true
+    SECURITY_SCANNER_V4_ENDPOINT: http://clair-app.quay-enterprise.svc.cluster.local:8080
     
     # Registry Configuration
     PREFERRED_URL_SCHEME: https
