@@ -11,12 +11,84 @@ echo "This script will fix the Ceph monitor quorum issue by reverting from 'lean
 echo "Checking current StorageCluster status..."
 oc get storagecluster ocs-storagecluster -n openshift-storage -o yaml | grep -E "(resourceProfile|phase)"
 
-# Apply the resource profile fix
-echo "Applying resource profile fix..."
+# Check node labels and taints
+echo "Checking node labels and taints..."
+echo "Available storage nodes:"
+oc get nodes -l cluster.ocs.openshift.io/openshift-storage --show-labels
+echo ""
+echo "Node taints:"
+oc get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints
+
+# Apply the resource profile and placement fix
+echo "Applying resource profile and placement fix..."
 oc patch storagecluster ocs-storagecluster -n openshift-storage --type='merge' -p='
 {
   "spec": {
     "resourceProfile": "balanced",
+    "placement": {
+      "all": {
+        "nodeAffinity": {
+          "requiredDuringSchedulingIgnoredDuringExecution": {
+            "nodeSelectorTerms": [
+              {
+                "matchExpressions": [
+                  {
+                    "key": "cluster.ocs.openshift.io/openshift-storage",
+                    "operator": "Exists"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "tolerations": [
+          {
+            "effect": "NoSchedule",
+            "key": "node-role.kubernetes.io/infra",
+            "operator": "Equal"
+          },
+          {
+            "effect": "NoSchedule",
+            "key": "node.ocs.openshift.io/storage",
+            "operator": "Equal",
+            "value": "true"
+          }
+        ]
+      },
+      "mon": {
+        "nodeAffinity": {
+          "requiredDuringSchedulingIgnoredDuringExecution": {
+            "nodeSelectorTerms": [
+              {
+                "matchExpressions": [
+                  {
+                    "key": "cluster.ocs.openshift.io/openshift-storage",
+                    "operator": "Exists"
+                  },
+                  {
+                    "key": "node-role.kubernetes.io/infra",
+                    "operator": "Exists"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "tolerations": [
+          {
+            "effect": "NoSchedule",
+            "key": "node-role.kubernetes.io/infra",
+            "operator": "Equal"
+          },
+          {
+            "effect": "NoSchedule",
+            "key": "node.ocs.openshift.io/storage",
+            "operator": "Equal",
+            "value": "true"
+          }
+        ]
+      }
+    },
     "resources": {
       "mgr": {
         "limits": {"cpu": "2", "memory": "4Gi"},

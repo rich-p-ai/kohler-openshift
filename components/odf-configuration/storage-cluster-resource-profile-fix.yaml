@@ -1,6 +1,6 @@
 ---
 # ODF Resource Profile Fix - Revert from lean to balanced
-# This patch fixes the critical Ceph monitor quorum issue caused by insufficient resources
+# This patch fixes the critical Ceph monitor quorum issue caused by insufficient resources and scheduling conflicts
 
 apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
@@ -12,6 +12,40 @@ metadata:
     argocd.argoproj.io/sync-options: Replace
 spec:
   resourceProfile: balanced
+  # Fix node placement and tolerations for monitor scheduling
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+    mon:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+            - key: node-role.kubernetes.io/infra
+              operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
   resources:
     mgr:
       limits:
