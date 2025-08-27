@@ -37,7 +37,6 @@ stringData:
     FEATURE_EXTENDED_REPOSITORY_NAMES: true
     FEATURE_QUOTA_MANAGEMENT: true
     FEATURE_PROXY_CACHE: true
-    FEATURE_TEAM_SYNCING: true
     FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true
     
     # Database Configuration (External PostgreSQL HA)
