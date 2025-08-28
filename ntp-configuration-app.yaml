@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ntp-configuration
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: ntp-configuration
+    app.kubernetes.io/component: machine-config
+    app.kubernetes.io/part-of: cluster-infrastructure
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-org/kohler-openshift.git
+    targetRevision: HEAD
+    path: components/ntp-configuration
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-machine-config-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+  revisionHistoryLimit: 10

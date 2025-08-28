@@ -55,6 +55,18 @@ applications:
       phase: core
     source:
       path: clusters/ocp2/node-configuration
+
+  ntp-configuration:
+    enabled: true
+    labels:
+      component: infrastructure
+      phase: core
+    source:
+      path: components/ntp-configuration
+    destination:
+      namespace: openshift-machine-config-operator
+    annotations:
+      argocd.argoproj.io/sync-wave: "1"
    
   # network-configuration:
   #   enabled: true
