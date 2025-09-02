@@ -1,0 +1,261 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rook-ceph-tools
+  namespace: openshift-storage
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rook-ceph-tools-cluster-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - endpoints
+  - persistentvolumeclaims
+  - events
+  - configmaps
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  - replicasets
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  - replicasets
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ceph.rook.io
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - rook.io
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rook-ceph-tools-cluster-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rook-ceph-tools-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-tools
+  namespace: openshift-storage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-tools
+  namespace: openshift-storage
+  labels:
+    app: rook-ceph-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rook-ceph-tools
+  template:
+    metadata:
+      labels:
+        app: rook-ceph-tools
+    spec:
+      serviceAccountName: rook-ceph-tools
+      containers:
+      - name: rook-ceph-tools
+        image: registry.redhat.io/rhceph/rhceph-8-rhel9@sha256:af2a9608b80ad7c90cf239cbe6007acd8d3b03d0153cfe3fadebc981bdd39613
+        command:
+          - /bin/bash
+          - -c
+          - |
+            #!/bin/bash
+            # Keep container running
+            while true; do
+              echo "Rook Ceph Tools container is running..."
+              sleep 300
+            done
+        env:
+          - name: ROOK_CEPH_USERNAME
+            valueFrom:
+              secretKeyRef:
+                key: ceph-username
+                name: rook-ceph-mon
+          - name: ROOK_CEPH_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: ceph-secret
+                name: rook-ceph-mon
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: ceph-config
+          mountPath: /etc/ceph
+        - name: ceph-admin-secret
+          mountPath: /var/lib/rook-ceph-mon
+          readOnly: true
+      volumes:
+      - name: ceph-config
+        configMap:
+          name: rook-ceph-mon-endpoints
+          items:
+          - key: ceph.conf
+            path: ceph.conf
+          - key: keyring
+            path: keyring
+      - name: ceph-admin-secret
+        secret:
+          secretName: rook-ceph-mon
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: rook-ceph-osd
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Equal
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1001
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-ceph-tools-info
+  namespace: openshift-storage
+data:
+  README: |
+    # Rook Ceph Tools
+
+    This deployment provides a Ceph toolbox container for debugging and monitoring Ceph clusters.
+
+    ## Usage
+
+    To access the Ceph tools, exec into the pod:
+
+    ```bash
+    oc rsh -n openshift-storage deployment/rook-ceph-tools
+    ```
+
+    ## Available Commands
+
+    - ceph status
+    - ceph health
+    - ceph df
+    - ceph osd tree
+    - ceph pg stat
+    - ceph mon stat
+    - radosgw-admin
+    - rbd
+
+    ## Troubleshooting
+
+    If the pod is not running, check:
+    1. Ceph cluster health: oc get cephcluster -n openshift-storage
+    2. Storage cluster status: oc get storagecluster -n openshift-storage
+    3. Pod logs: oc logs deployment/rook-ceph-tools -n openshift-storage
+    4. Events: oc get events -n openshift-storage --field-selector involvedObject.name=rook-ceph-tools

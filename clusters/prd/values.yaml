@@ -101,6 +101,18 @@ applications:
     destination:
       namespace: openshift-storage
 
+  rook-ceph-tools:
+    enabled: true
+    labels:
+      component: storage
+      phase: data
+    source:
+      path: components/rook-ceph-tools
+    destination:
+      namespace: openshift-storage
+    annotations:
+      argocd.argoproj.io/sync-wave: "15"
+
   oadp-operator:
     enabled: true
     labels:
