@@ -7,5 +7,4 @@ metadata:
 namespace: openshift-storage
 resources:
   - ./storage-system.yaml
-  - ./storage-cluster.yaml
   - ./storage-cluster-resource-profile-fix.yaml
